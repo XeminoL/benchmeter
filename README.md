@@ -6,8 +6,6 @@ Interleaving the variants within each round removes the attribution. Where the e
 
 ![The interface after a run](docs/screenshot-light.png)
 
-For measuring commands rather than snippets, run it locally:
-
 - `launchers/benchmeter.cmd` on Windows
 - `launchers/benchmeter.sh` on Mac, Linux
 
