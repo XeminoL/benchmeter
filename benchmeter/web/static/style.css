@@ -222,6 +222,11 @@ button.secondary {
   border-color: var(--line);
 }
 
+#cancel {
+  min-width: 16ch;
+  font-variant-numeric: tabular-nums;
+}
+
 button.secondary:hover:not(:disabled) {
   border-color: var(--text);
   opacity: 1;
@@ -329,12 +334,6 @@ caption {
 
 .scatter-block {
   margin: 32px 0 0;
-}
-
-.scatter-block__label {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0 0 4px;
 }
 
 .scatter {

@@ -8,7 +8,9 @@ from . import statistics_ as stats
 from .clock import Run, estimate_duration_ns, time_once
 
 WARMUP_ROUNDS = 3
-MIN_ROUNDS = 10
+WARMUP_BUDGET_THRESHOLD = 3.0
+MIN_ROUNDS = 1
+MIN_ROUNDS_FOR_INTERVAL = 10
 MAX_ROUNDS = 400
 CHECK_INTERVAL = 10
 DEFAULT_BUDGET_SECONDS = 30
@@ -49,7 +51,13 @@ def warm_up(commands: Sequence[str], rounds: int = WARMUP_ROUNDS) -> None:
 
 
 def plan_rounds(commands: Sequence[str], budget_seconds: float) -> int:
-    per_round = sum(estimate_duration_ns(command) for command in commands)
+    probe_runs = 1 if budget_seconds < WARMUP_BUDGET_THRESHOLD else None
+    per_round = sum(
+        estimate_duration_ns(command)
+        if probe_runs is None
+        else estimate_duration_ns(command, runs=probe_runs)
+        for command in commands
+    )
     if per_round <= 0:
         return MAX_ROUNDS
     affordable = int(budget_seconds * NANOSECONDS_PER_SECOND / per_round)
@@ -63,7 +71,8 @@ def is_settled(series: Sequence[Series], seed: int | None,
 
     baseline = series[0]
     for variant in series[1:]:
-        if len(baseline) < MIN_ROUNDS or len(variant) < MIN_ROUNDS:
+        if (len(baseline) < MIN_ROUNDS_FOR_INTERVAL
+                or len(variant) < MIN_ROUNDS_FOR_INTERVAL):
             return False
         ratio, lower, upper = stats.ratio_confidence_interval(
             baseline.timings, variant.timings, seed=seed)
@@ -88,7 +97,8 @@ def measure(
     rng = random.Random(seed)
     series = [Series(label) for label in labels]
 
-    warm_up(commands)
+    if budget_seconds >= WARMUP_BUDGET_THRESHOLD:
+        warm_up(commands)
     if rounds is None:
         rounds = plan_rounds(commands, budget_seconds)
 
@@ -105,7 +115,7 @@ def measure(
         if on_progress:
             on_progress(completed, rounds)
 
-        long_enough = completed >= MIN_ROUNDS * 2
+        long_enough = completed >= MIN_ROUNDS_FOR_INTERVAL * 2
         at_checkpoint = completed % CHECK_INTERVAL == 0
         if long_enough and at_checkpoint and len(series) > 1:
             if is_settled(series, seed, resolution):

@@ -95,9 +95,9 @@
     <div class="field">
       <label class="field__label" for="budget">Time to spend</label>
       <div class="field__row field__row--narrow">
-        <input type="number" id="budget" value="20" min="5" max="120"
-               step="5">
-        <span class="field__unit">seconds at most</span>
+        <input type="number" id="budget" value="20" min="0.01" max="120"
+               step="1">
+        <span class="field__unit">seconds</span>
       </div>
     </div>
 
@@ -131,7 +131,6 @@
     </table>
 
     <div class="scatter-block">
-      <p class="scatter-block__label">Every run, in order</p>
       <div id="scatter"></div>
     </div>
 

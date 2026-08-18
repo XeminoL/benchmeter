@@ -349,9 +349,6 @@ function renderScatter(series) {
     entry.append(marker, document.createTextNode(item.label));
     legend.appendChild(entry);
   });
-  const dashed = document.createElement("span");
-  dashed.textContent = "dashed line: typical";
-  legend.appendChild(dashed);
   host.appendChild(legend);
 
 }
@@ -430,6 +427,27 @@ async function copyReport() {
 }
 
 let activeRun = null;
+let elapsedTimer = null;
+
+function startElapsed(budget) {
+  const cancel = el("cancel");
+  const cap = budget < 1 ? budget : Math.round(budget);
+  let seconds = 0;
+  const tick = () => {
+    cancel.textContent = `Cancel (${seconds}s / ${cap}s)`;
+    seconds += 1;
+  };
+  tick();
+  elapsedTimer = setInterval(tick, 1000);
+}
+
+function stopElapsed() {
+  if (elapsedTimer) {
+    clearInterval(elapsedTimer);
+    elapsedTimer = null;
+  }
+  el("cancel").textContent = "Cancel";
+}
 function cancelMeasurement() {
   if (activeRun) {
     activeRun.abort();
@@ -449,6 +467,7 @@ async function runMeasurement() {
   activeRun = new AbortController();
   button.disabled = true;
   cancel.hidden = false;
+  startElapsed(payload.budget);
 
   try {
     const response = await request("/api/measure", {
@@ -471,6 +490,7 @@ async function runMeasurement() {
       setStatus(status, "lost the local server", true);
     }
   } finally {
+    stopElapsed();
     activeRun = null;
     button.disabled = false;
     cancel.hidden = true;

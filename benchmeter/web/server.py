@@ -21,6 +21,7 @@ ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
 DEFAULT_PORT = 7801
 MAX_COMMANDS = 4
 MAX_BUDGET_SECONDS = 120
+MIN_BUDGET_SECONDS = 0.01
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",
     ".css": "text/css; charset=utf-8",
@@ -48,7 +49,8 @@ def run_measurement(payload: dict) -> dict:
     ]
 
     budget = float(payload.get("budget", 20))
-    budget = max(5.0, min(budget, MAX_BUDGET_SECONDS))
+    budget = max(MIN_BUDGET_SECONDS,
+                 min(budget, MAX_BUDGET_SECONDS))
 
     state = machine.probe()
     measurement = measure(
