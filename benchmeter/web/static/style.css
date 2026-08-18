@@ -259,7 +259,7 @@ button.secondary:hover:not(:disabled) {
   gap: 16px;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 8px;
+  margin-bottom: 24px;
 }
 
 table {
@@ -276,7 +276,7 @@ caption {
 }
 
 .figures {
-  margin-top: 20px;
+  margin-top: 4px;
 }
 
 .figures th,
@@ -305,9 +305,10 @@ caption {
   line-height: 1.4;
 }
 
-.figures__key td:nth-child(2) {
+.figures__key th,
+.figures__key td {
+  font-weight: 600;
   color: var(--text);
-  border-bottom: 2px solid var(--text);
 }
 
 .data {
