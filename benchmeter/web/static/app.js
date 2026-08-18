@@ -439,3 +439,17 @@ function toggleTheme() {
 
 applyTheme(currentTheme());
 el("theme-toggle").addEventListener("click", toggleTheme);
+
+const CARET_INTERVAL_MS = 550;
+
+function startCaret() {
+  const caret = document.querySelector(".masthead__caret");
+  if (!caret) return;
+  let visible = true;
+  setInterval(() => {
+    visible = !visible;
+    caret.classList.toggle("masthead__caret--off", !visible);
+  }, CARET_INTERVAL_MS);
+}
+
+startCaret();

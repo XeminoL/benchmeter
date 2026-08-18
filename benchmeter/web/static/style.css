@@ -93,16 +93,10 @@ body {
   height: 1.7rem;
   margin-left: 0.4ch;
   background: var(--accent);
-  animation: caret-blink 0.7s steps(2, jump-none) infinite;
 }
 
-@keyframes caret-blink {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+.masthead__caret--off {
+  background: transparent;
 }
 
 .section {
@@ -698,9 +692,5 @@ caption {
   * {
     animation: none !important;
     transition: none !important;
-  }
-
-  .masthead__caret {
-    opacity: 1;
   }
 }
