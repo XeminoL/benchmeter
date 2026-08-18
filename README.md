@@ -62,8 +62,6 @@ The `0`/`2` distinction separates a regression from a busy runner in CI.
 
 Saved runs record the host state, so a comparison spanning two host states is reported as such.
 
-The commands given to it are executed. The local server binds to loopback and rejects requests that did not originate from its own page.
-
 ![Dark theme](docs/screenshot-dark.png)
 
 ## Experiments
