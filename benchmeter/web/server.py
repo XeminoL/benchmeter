@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .. import machine, report as reporting
-from ..clock import format_duration, is_runnable
+from ..clock import format_duration
 from ..experiment import measure
 from .. import statistics_ as stats
 
@@ -36,11 +36,6 @@ def run_measurement(payload: dict) -> dict:
     if len(commands) > MAX_COMMANDS:
         return {"error": f"At most {MAX_COMMANDS} commands."}
 
-    for command in commands:
-        runnable, _ = is_runnable(command)
-        if not runnable:
-            return {"error": f"This command did not run: {command}"}
-
     labels = payload.get("labels") or []
     labels = [
         (labels[i].strip() if i < len(labels) and labels[i].strip()
@@ -52,13 +47,21 @@ def run_measurement(payload: dict) -> dict:
     budget = max(MIN_BUDGET_SECONDS,
                  min(budget, MAX_BUDGET_SECONDS))
 
+    started = time.perf_counter()
     state = machine.probe()
+    remaining = budget - (time.perf_counter() - started)
+
     measurement = measure(
         commands, labels,
-        budget_seconds=budget,
+        budget_seconds=max(remaining, 0.0),
         resolution=state.resolution,
     )
     report = reporting.analyse(measurement, state)
+
+    broken = [s.label for s in measurement.series if not s.timings]
+    if broken:
+        return {"error": "These commands did not run: "
+                         + ", ".join(broken)}
 
     return {
         "machine": {

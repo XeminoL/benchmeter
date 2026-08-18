@@ -115,17 +115,21 @@ def measure(
     stopped_early = False
     completed = 0
 
+    recent_round_ns: list[int] = []
+
     while completed < limit:
-        out_of_time = (bounded_by_time and completed > 0
-                       and time.perf_counter_ns() >= deadline_ns)
-        if out_of_time:
-            break
+        round_started_ns = time.perf_counter_ns()
+        if bounded_by_time and recent_round_ns:
+            if deadline_ns - round_started_ns < max(recent_round_ns):
+                break
 
         if shuffle:
             rng.shuffle(order)
         for index in order:
             series[index].record(time_once(commands[index], labels[index]))
         completed += 1
+
+        recent_round_ns.append(time.perf_counter_ns() - round_started_ns)
 
         if on_progress:
             on_progress(completed, limit)
