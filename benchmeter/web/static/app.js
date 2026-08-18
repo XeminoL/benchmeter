@@ -39,7 +39,6 @@ async function checkMachine() {
   const button = el("check-machine");
   const status = el("machine-status");
   button.disabled = true;
-  setStatus(status, "measuring…");
   try {
     const response = await request("/api/machine");
     renderMachine(await response.json());
@@ -431,26 +430,6 @@ async function copyReport() {
 }
 
 let activeRun = null;
-let elapsedTimer = null;
-
-function startElapsed(status, budget) {
-  let seconds = 0;
-  const tick = () => {
-    seconds += 1;
-    const cap = Math.round(budget);
-    setStatus(status, `measuring, ${seconds}s of up to ${cap}s`);
-  };
-  tick();
-  elapsedTimer = setInterval(tick, 1000);
-}
-
-function stopElapsed() {
-  if (elapsedTimer) {
-    clearInterval(elapsedTimer);
-    elapsedTimer = null;
-  }
-}
-
 function cancelMeasurement() {
   if (activeRun) {
     activeRun.abort();
@@ -470,7 +449,6 @@ async function runMeasurement() {
   activeRun = new AbortController();
   button.disabled = true;
   cancel.hidden = false;
-  startElapsed(status, payload.budget);
 
   try {
     const response = await request("/api/measure", {
@@ -493,7 +471,6 @@ async function runMeasurement() {
       setStatus(status, "lost the local server", true);
     }
   } finally {
-    stopElapsed();
     activeRun = null;
     button.disabled = false;
     cancel.hidden = true;
