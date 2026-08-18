@@ -11,7 +11,10 @@ Interleaving the variants within each round removes the attribution. Where the e
 
 Update to Python 3.9+
 
-![Two identical commands, correctly declared indistinguishable](docs/screenshot-inconclusive.png)
+[Run it in a browser](https://xeminol.github.io/benchmeter/) with no install. Python
+runs through Pyodide there, so the floor sits higher than it does natively.
+
+![A command against an exact copy of itself: the interval crosses zero and the difference sits under the resolution floor, so no verdict is issued](docs/screenshot-inconclusive.png)
 
 ## Architecture
 
