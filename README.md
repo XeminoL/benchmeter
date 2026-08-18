@@ -16,11 +16,17 @@ This tool gets that down to about 4%, and when it still cannot tell, it says so 
 
 ## Try it in the browser
 
+Double-click `launchers/benchmeter.cmd` on Windows, or `launchers/benchmeter.sh` on Mac and Linux. It opens a page on your own machine.
+
+Type in two commands, press the button, read the answer. No account, nothing leaves your laptop. If Python is missing it tells you where to get it.
+
+From a terminal, if you prefer:
+
 ```
 python -m benchmeter.cli --web
 ```
 
-Opens a page on your own machine. Type in two commands, press the button, read the answer. No install, no account, nothing leaves your laptop.
+The page checks your machine, runs your commands, and either gives you a number or tells you it cannot. Results can be copied as plain text or printed.
 
 ## Or from the terminal
 
@@ -135,6 +141,8 @@ Saved runs store the machine conditions too. If you compare against last week an
 **The alternating trick isn't mine.** It's called RMIT in the research literature. What I did was package it so you can actually use it, and make it shut up when it doesn't know.
 
 **One machine, one operating system.** Everything above was measured on a single Windows laptop. Your numbers will differ. Run `--self-proof` and find out.
+
+**It runs whatever you type.** The server only listens on loopback and rejects requests that did not come from its own page, but it does execute the commands you give it. Do not paste in something you would not run yourself.
 
 ## Running the tests
 
