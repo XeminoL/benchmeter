@@ -22,9 +22,7 @@ Update to Python 3.9+
 - **Interleaved rounds.** Every variant runs once per round, in shuffled order. Drift that a sequential design records as a difference between variants becomes variance shared by both.
 - **Median and MAD.** Timing distributions are right-skewed; the mean follows the tail.
 - **Paired bootstrap.** Round *i* of A and round *i* of B execute seconds apart. Resampling whole rounds preserves the pairing.
-- **Resolution floor.** An interval characterises the samples, not the stability of the host. An early version reported a narrow interval between two identical commands on a drifting machine. The host is now profiled separately, and a difference must clear its measured resolution.
-
-Known in the literature as RMIT.
+- **Resolution floor.** An interval characterises the samples, not the stability of the host. The host is profiled separately, and a difference must clear its measured resolution before it is reported.
 
 ## Validation
 
@@ -34,7 +32,7 @@ python -m benchmeter.cli --self-proof
 
 Times one task, partitions the samples, and compares partitions drawn from it. Both procedures are scored on the same samples.
 
-Replicated in C to rule out the garbage collector and the interpreter loop. Source in `native/verify.c`. Three compiler traps that silently reduce the measurement to zero are documented in `native/README.md`.
+Replicated in C to rule out the garbage collector and the interpreter loop as causes, with the same outcome. Source in `native/verify.c`.
 
 ## Usage
 
@@ -60,6 +58,8 @@ The `0`/`2` distinction separates a regression from a busy runner in CI.
 
 Saved runs record the host state, so a comparison spanning two host states is reported as such.
 
+The commands given to it are executed. The local server binds to loopback and rejects requests that did not originate from its own page.
+
 ![Dark theme](docs/screenshot-dark.png)
 
 ## Experiments
@@ -70,10 +70,10 @@ python experiments/floor_sensitivity.py
 python experiments/against_hyperfine.py <path-to-hyperfine>
 ```
 
-The three measurements the report rests on: how much of a timed run is
-interpreter start-up, how the resolution floor behaves as its threshold is
-moved, and how the tool compares against hyperfine on two identical
-commands. Details in `experiments/README.md`.
+Three measurements behind the design: how much of a timed run is interpreter
+start-up, how the resolution floor behaves as its threshold is moved, and how
+the tool compares against hyperfine on the same host. Details in
+`experiments/README.md`.
 
 ## Tests
 
