@@ -1,103 +1,61 @@
-# benchmeter
+Tells you whether one command is really faster than another, or whether the difference is just noise.
 
-Compares the running time of two commands and reports how much confidence the result deserves.
+Most of the time it is noise. Take a command, compare it against an exact copy of itself, and measure the usual way — all of A, then all of B, means compared with the standard error. On an ordinary laptop that says the two differ in **62% of trials**. Same command, same machine.
 
-![benchmeter interface](docs/screenshot-light.png)
+Interleaving the two brings it to **4%**, and when the data still cannot support an answer, this says so instead of picking a number.
 
-## The problem
+![The interface after a run](docs/screenshot-light.png)
 
-Execution time is not a constant. The same command on the same machine gives different answers on consecutive runs: CPU frequency responds to temperature and power source, the operating system schedules other work, caches warm and cool.
-
-The consequence is that most observed differences between two versions of a piece of code fall inside the measurement noise rather than reflecting a real change.
-
-A concrete measurement on an ordinary laptop: take one command, compare it against an exact copy of itself, and use the common approach — run all of A, then all of B, compare the means with the standard-error-over-root-N formula. The result declares the two different in **62% of trials**, although they are the same command.
-
-The method used here brings that to roughly **4%**, and withholds a verdict when the data does not support one.
-
-## Installation
-
-Python 3.9 or later. No third-party dependencies.
+Type two commands, press the button. Runs on your own machine, nothing is uploaded.
 
 ```
 python -m benchmeter.cli --web
 ```
 
-On Windows, `launchers/benchmeter.cmd` can be double-clicked; on macOS and Linux, `launchers/benchmeter.sh`. Both locate a suitable interpreter and explain where to obtain Python if none is present.
+Or double-click `launchers/benchmeter.cmd` on Windows, `launchers/benchmeter.sh` elsewhere. Python 3.9+, no dependencies.
 
-From a terminal:
-
-```bash
-python -m benchmeter.cli "python old.py" "python new.py"
-```
-
-## Output
-
-Two forms. When the confidence interval sits entirely on one side of parity:
+## The two answers
 
 ```
-  variant is 12.4% faster than baseline
-  95% confidence interval: -15.1% to -9.7%
-  confidence: high
+variant is 12.4% faster than baseline
+95% confidence interval: -15.1% to -9.7%
 ```
 
-When equal performance has not been ruled out:
-
 ```
-  NO CONCLUSION
-  Observed difference 3.1%, but the confidence interval runs
-  from -1.2% to +7.4%
-  -> that interval includes zero, so equal speed has not been ruled out.
-
-  What to do next:
-    - Machine is drifting 22%. Close other applications and measure again.
-    - About 180 more rounds would likely settle it.
+NO CONCLUSION
+Observed difference 3.1%, but the confidence interval runs
+from -1.2% to +7.4%
+  - Machine is drifting 22%. Close other applications and measure again.
+  - About 180 more rounds would likely settle it.
 ```
 
-The second form is the main departure from comparable tools. Rather than returning 3.1% and leaving the interpretation to the reader, it states that the evidence is insufficient and what would change that.
+The second one is the point. Other tools hand you 3.1% and let you act on it.
 
-![no conclusion](docs/screenshot-inconclusive.png)
-
-*Two identical copies of one command. The interval spans zero, so no difference is reported.*
+![Two identical commands, correctly declared indistinguishable](docs/screenshot-inconclusive.png)
 
 ## Architecture
 
-![architecture](docs/architecture.svg)
+![Module structure](docs/architecture.svg)
 
-Two entry points share one measurement core. The browser interface is served by a local HTTP server that accepts requests only from the page it served itself, authenticated by a per-session token; the command line calls the same functions directly.
+## How it works
 
-| Module | Responsibility |
-|---|---|
-| `clock.py` | Times a single subprocess launch with `perf_counter_ns` |
-| `machine.py` | Repeats a fixed workload to derive drift, spread and noise floor |
-| `experiment.py` | Runs interleaved rounds under a wall-clock deadline |
-| `statistics_.py` | Median, MAD, paired bootstrap interval, drift, autocorrelation |
-| `report.py` | Applies both decision rules and phrases the verdict |
-| `history.py` | Stores results alongside the machine state at the time |
-| `selfproof.py` | Counts false positives by splitting one task in half |
-| `cli.py` | Argument handling and terminal output |
-| `web/server.py` | Static files, JSON endpoints, request authentication |
+**Interleaved rounds.** Each round runs both commands once, in shuffled order. Measure all of A and then all of B, and the machine warms up in between — that drift lands on B and B gets blamed. Interleaving makes both share it.
 
-## Method
+**Median, not mean.** Timing distributions are right-skewed: a process can be delayed indefinitely but cannot finish faster than its instructions allow. On the test machine the mean sat 16.9% above the median.
 
-**Interleaved rounds.** Each round runs both commands once, in shuffled order. Sequential measurement places all of B's samples in a different time window from A's, so any drift between the two windows is attributed entirely to B. Interleaving distributes it across both.
+**Bootstrap over pairs.** Round *i* of A and round *i* of B ran seconds apart under the same conditions. Resampling whole rounds keeps that pairing instead of mixing the two series.
 
-**Median rather than mean.** Outliers from operating-system interference do not move the estimate.
+**A noise floor.** A confidence interval describes the samples you collected and knows nothing about the machine drifting underneath them. During development this reported a 1.9% difference between two identical commands while the machine drifted 48%, because the interval alone looked convincing. So the host is profiled separately and a difference must clear its measured resolution too.
 
-**Paired bootstrap.** Round *i* of A and round *i* of B execute seconds apart under the same conditions. Resampling whole pairs preserves that relationship instead of mixing the two series.
+The interleaving scheme is called RMIT in the literature. What is added here is the packaging and that second gate.
 
-**A noise floor gate.** A confidence interval describes only the samples collected; it carries no information about the machine drifting underneath them. A difference must clear the machine's measured resolution as well as parity before it is reported.
-
-The multi-level interleaving scheme is known in the literature as randomised multiple interleaved trials (RMIT). What is added here is the packaging and the second decision rule.
-
-## Independent verification
+## Prove it yourself
 
 ```
 python -m benchmeter.cli --self-proof
 ```
 
-This times a single task, splits the samples into two halves in collection order, and compares the halves using both methods. Since both halves are the same task, every "significant difference" is a false positive and can be counted.
-
-Reference machine, Intel i7-1185G7, Windows, integrated graphics:
+Times one task, splits the samples in half, compares the halves both ways. Both halves are the same task, so every "significant difference" is a false positive and gets counted.
 
 ```
                           Python       C
@@ -106,51 +64,38 @@ sequential → false pos.    62.2%    40.7%
 interleaved → false pos.    4.1%     0.0%
 ```
 
-The C column exists to rule out the Python garbage collector and interpreter as the source. Source in `native/verify.c`; three compiler pitfalls encountered while writing it are documented in `native/README.md`.
+The C column rules out the Python garbage collector. Source in `native/verify.c` — three compiler traps hit while writing it are in `native/README.md`.
 
-## Machine characterisation
+## Check the machine
 
 ```
 python -m benchmeter.cli --check-machine
 ```
 
 ```
-  grade           : noisy
-  drift           : 40.4%
-  resolves from   : 2.6%
+grade           : noisy
+drift           : 40.4%
+resolves from   : 2.6%
 ```
 
-A workload of fixed size runs repeatedly. Because the workload does not change, every variation observed originates in the machine.
-
-The last line is the resolution floor: on this machine differences below 2.6% lie under the noise and cannot be established regardless of sample count.
+A fixed workload runs repeatedly. Since the workload never changes, every variation seen is the machine. The last line is the floor: below 2.6% nothing can be established here, however long you measure.
 
 ## Options
 
 ```bash
-# display names
-python -m benchmeter.cli "python a.py" "python b.py" --label old --label new
-
-# more than two commands
-python -m benchmeter.cli "a.py" "b.py" "c.py"
-
-# time limit in seconds
-python -m benchmeter.cli "a" "b" -t 60
-
-# JSON output
+python -m benchmeter.cli "a.py" "b.py" --label old --label new
+python -m benchmeter.cli "a.py" "b.py" "c.py"     # more than two
+python -m benchmeter.cli "a" "b" -t 60            # seconds
 python -m benchmeter.cli "a" "b" --json
-
-# fixed seed, for a reproducible run
-python -m benchmeter.cli "a" "b" --seed 42
-
-# record and compare against the previous run
+python -m benchmeter.cli "a" "b" --seed 42        # reproducible
 python -m benchmeter.cli "a" "b" --save --note "before caching"
 ```
 
-Exit codes: `0` a difference was found, `1` an error occurred, `2` no conclusion. Distinguishing `0` from `2` matters in continuous integration, so that a failure means performance regressed rather than the runner being busy.
+Exit codes: `0` difference found, `1` error, `2` no conclusion. The `0`/`2` split matters in CI, so a failure means performance regressed and not that the runner was busy.
 
-Saved records include the machine state at the time of measurement. When a comparison spans two different machine states, the tool says so.
+Saved runs store the machine state too, so comparing across two different machine states says so rather than blaming the code.
 
-![dark theme](docs/screenshot-dark.png)
+![Dark theme](docs/screenshot-dark.png)
 
 ## Tests
 
@@ -158,34 +103,22 @@ Saved records include the machine state at the time of measurement. When a compa
 python -m unittest discover tests
 ```
 
-31 tests. The substantive ones are in `test_false_positives.py`, which supplies cases with a known correct answer — samples drawn from one distribution must never be called different, a twofold difference must never be missed — and counts the error rate. A measurement tool that grades its own output is not evidence.
+31 tests. The ones that matter are in `test_false_positives.py`, where the right answer is fixed in advance — samples from one distribution must never be called different, a twofold difference must never be missed — and the error rate is counted. A measurement tool that grades its own output is not evidence.
 
-## Limitations
+## What it won't do
 
-**It does not reduce machine variation.** Pinning the process to one CPU core, raising scheduling priority and disabling garbage collection were all measured. Without administrator rights the first two are refused by the operating system and the third produced no reduction in drift. The tool detects and reports instead.
+It won't quiet your machine. Pinning to a core, raising priority and disabling the garbage collector were all tried; without admin rights the first two are refused and the third changed nothing measurable. So it profiles and reports instead.
 
-**It is slower than instruction counting.** `cachegrind` counts CPU instructions with near-zero variance, but runs slowly and disregards hardware behaviour such as branch prediction and instruction-level parallelism. The two answer different questions.
+It's slower than counting instructions. `cachegrind` has near-zero variance but ignores branch prediction and instruction-level parallelism. Different question.
 
-**It executes the commands it is given.** The server binds to loopback only and rejects requests that did not originate from its own page, but it does run what it receives.
+It runs what you give it. The server binds to loopback and rejects requests that didn't come from its own page, but it does execute the commands.
 
-**Figures come from one machine.** Every number in this document was measured on a single Windows laptop. Results elsewhere will differ; `--self-proof` reproduces the experiment locally.
+Every number here came from one Windows laptop. Yours will differ — `--self-proof` reproduces it locally.
 
-**Distributed measurement across machines is not supported.**
+## Where it came from
 
-## Background
+A first-year physics lab, where a measurement without an uncertainty is not a result and you establish the resolution of the instrument before trusting a reading.
 
-The governing principle comes from an undergraduate physics laboratory course: a measurement is reported with its uncertainty, and the resolution of the instrument is established before the reading is trusted.
+Mytkowicz et al. surveyed 133 papers from ASPLOS, PACT, PLDI and CGO and found none that handled measurement bias properly.
 
-The principle is applied unevenly in software performance work. Mytkowicz et al. surveyed 133 papers from ASPLOS, PACT, PLDI and CGO and found none that adequately accounted for measurement bias.
-
-## References
-
-1. Mytkowicz, T., Diwan, A., Hauswirth, M., Sweeney, P. F. *Producing Wrong Data Without Doing Anything Obviously Wrong!* ASPLOS 2009.
-2. Curtsinger, C., Berger, E. D. *STABILIZER: Statistically Sound Performance Evaluation.* ASPLOS 2013.
-3. Laaber, C., Würsten, S., Gall, H. C., Leitner, P. *Dynamically Reconfiguring Software Microbenchmarks: Reducing Execution Time without Sacrificing Result Quality.* ESEC/FSE 2020.
-4. Kalibera, T., Jones, R. *Rigorous Benchmarking in Reasonable Time.* ISMM 2013.
-5. Efron, B., Tibshirani, R. J. *An Introduction to the Bootstrap.* Chapman & Hall, 1993.
-
-## Licence
-
-MIT.
+MIT licence.

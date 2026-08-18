@@ -1,107 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 600" width="780" height="600" font-family="ui-sans-serif, 'Segoe UI', Helvetica, Arial, sans-serif">
-<style>
-  .box { fill: #fff; stroke: #1f2320; stroke-width: 1.2; }
-  .soft { fill: #f4f2ed; stroke: #9aa09a; stroke-width: 1; }
-  .name { font-size: 13px; font-weight: 600; fill: #1f2320; }
-  .role { font-size: 11px; fill: #5c635e; }
-  .mod { font-size: 11.5px; font-family: Consolas, monospace; fill: #1f2320; }
-  .band { font-size: 10.5px; font-weight: 600; fill: #8a918c; letter-spacing: 0.08em; }
-  .flow { stroke: #1f2320; stroke-width: 1.2; fill: none; }
-  .back { stroke: #8a918c; stroke-width: 1.1; fill: none; stroke-dasharray: 5 4; }
-  .note { font-size: 10.5px; fill: #5c635e; font-style: italic; }
-</style>
-
-<text x="24" y="24" class="band">ENTRY POINTS</text>
-<line x1="24" y1="32" x2="756" y2="32" stroke="#d9d5cc" stroke-width="1"/>
-
-<rect x="24" y="46" width="196" height="54" class="box"/>
-<text x="38" y="68" class="name">Browser page</text>
-<text x="38" y="87" class="role">web/static — index, style, app.js</text>
-
-<rect x="248" y="46" width="164" height="54" class="box"/>
-<text x="262" y="68" class="name">Local server</text>
-<text x="262" y="88" class="mod">web/server.py</text>
-
-<rect x="440" y="46" width="164" height="54" class="box"/>
-<text x="454" y="68" class="name">Terminal</text>
-<text x="454" y="88" class="mod">cli.py</text>
-
-<path d="M 220 66 H 244" class="flow" marker-end="url(#tip)"/>
-<path d="M 244 84 H 224" class="flow" marker-end="url(#tip)"/>
-<text x="620" y="70" class="note">both drive the</text>
-<text x="620" y="86" class="note">same core</text>
-
-<text x="24" y="140" class="band">MEASUREMENT</text>
-<line x1="24" y1="148" x2="756" y2="148" stroke="#d9d5cc" stroke-width="1"/>
-
-<rect x="24" y="164" width="212" height="98" class="box"/>
-<text x="38" y="186" class="name">Machine profile</text>
-<text x="38" y="206" class="mod">machine.py</text>
-<text x="38" y="228" class="role">fixed workload, repeated</text>
-<text x="38" y="245" class="role">gives drift and noise floor</text>
-
-<rect x="284" y="164" width="212" height="98" class="box"/>
-<text x="298" y="186" class="name">Interleaved trials</text>
-<text x="298" y="206" class="mod">experiment.py</text>
-<text x="298" y="228" class="role">one round runs A and B,</text>
-<text x="298" y="245" class="role">shuffled, bound by deadline</text>
-
-<rect x="544" y="164" width="212" height="98" class="soft"/>
-<text x="558" y="186" class="name">Process timing</text>
-<text x="558" y="206" class="mod">clock.py</text>
-<text x="558" y="228" class="role">perf_counter_ns around</text>
-<text x="558" y="245" class="role">each subprocess launch</text>
-
-<path d="M 330 100 V 160" class="flow" marker-end="url(#tip)"/>
-<path d="M 522 100 V 130 H 390 V 160" class="flow" marker-end="url(#tip)"/>
-<path d="M 236 213 H 280" class="flow" marker-end="url(#tip)"/>
-<path d="M 496 213 H 540" class="flow" marker-end="url(#tip)"/>
-
-<text x="24" y="302" class="band">INFERENCE</text>
-<line x1="24" y1="310" x2="756" y2="310" stroke="#d9d5cc" stroke-width="1"/>
-
-<rect x="24" y="326" width="212" height="114" class="box"/>
-<text x="38" y="348" class="name">Statistics</text>
-<text x="38" y="368" class="mod">statistics_.py</text>
-<text x="38" y="390" class="role">median and MAD</text>
-<text x="38" y="407" class="role">paired bootstrap interval</text>
-<text x="38" y="424" class="role">drift, autocorrelation</text>
-
-<rect x="284" y="326" width="212" height="114" class="box"/>
-<text x="298" y="348" class="name">Verdict</text>
-<text x="298" y="368" class="mod">report.py</text>
-<text x="298" y="390" class="role">reports a difference only if</text>
-<text x="298" y="407" class="role">the interval clears parity</text>
-<text x="298" y="424" class="role">and beats the noise floor</text>
-
-<rect x="544" y="326" width="212" height="114" class="soft"/>
-<text x="558" y="348" class="name">Persistence</text>
-<text x="558" y="368" class="mod">history.py</text>
-<text x="558" y="390" class="role">saves machine state next to</text>
-<text x="558" y="407" class="role">each run, so a later change</text>
-<text x="558" y="424" class="role">is not blamed on the code</text>
-
-<path d="M 130 262 V 322" class="flow" marker-end="url(#tip)"/>
-<path d="M 390 262 V 322" class="flow" marker-end="url(#tip)"/>
-<path d="M 236 380 H 280" class="flow" marker-end="url(#tip)"/>
-<path d="M 496 380 H 540" class="flow" marker-end="url(#tip)"/>
-
-<path d="M 284 400 H 260 V 490 H 700 V 108" class="back" marker-end="url(#softtip)"/>
-<text x="330" y="484" class="note">verdict returned to whichever entry point asked for it</text>
-
-<text x="24" y="536" class="band">SIDE PATHS</text>
-<line x1="24" y1="544" x2="756" y2="544" stroke="#d9d5cc" stroke-width="1"/>
-<text x="24" y="564" class="role">selfproof.py — times one task, splits the samples, counts how often each method calls the halves different</text>
-<text x="24" y="582" class="role">native/verify.c — the same experiment in C, to rule out the Python runtime as the source of the noise</text>
-
+<svg xmlns="http://www.w3.org/2000/svg" width="790" height="470" viewBox="0 0 790 470" font-family="Helvetica, Arial, sans-serif">
+<rect width="790" height="470" fill="#ffffff"/>
+<rect x="40" y="40" width="150" height="44" rx="3" ry="3" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<text x="115.0" y="59.5" font-size="12" font-weight="600" font-family="inherit" fill="#000000" text-anchor="middle">Web page</text>
+<text x="115.0" y="73.5" font-size="10.5" font-weight="400" font-family="Consolas, monospace" fill="#4d4d4d" text-anchor="middle">web/server.py</text>
+<rect x="40" y="116" width="150" height="44" rx="3" ry="3" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<text x="115.0" y="135.5" font-size="12" font-weight="600" font-family="inherit" fill="#000000" text-anchor="middle">Terminal</text>
+<text x="115.0" y="149.5" font-size="10.5" font-weight="400" font-family="Consolas, monospace" fill="#4d4d4d" text-anchor="middle">cli.py</text>
+<rect x="268" y="40" width="224" height="56" rx="3" ry="3" fill="#d5e8d4" stroke="#82b366" stroke-width="1"/>
+<text x="380.0" y="65.5" font-size="12" font-weight="600" font-family="inherit" fill="#000000" text-anchor="middle">Profile the machine</text>
+<text x="380.0" y="79.5" font-size="10.5" font-weight="400" font-family="Consolas, monospace" fill="#4d4d4d" text-anchor="middle">machine.py</text>
+<rect x="268" y="152" width="224" height="56" rx="3" ry="3" fill="#f5f5f5" stroke="#666666" stroke-width="1"/>
+<text x="380.0" y="177.5" font-size="12" font-weight="600" font-family="inherit" fill="#000000" text-anchor="middle">Interleave A and B</text>
+<text x="380.0" y="191.5" font-size="10.5" font-weight="400" font-family="Consolas, monospace" fill="#4d4d4d" text-anchor="middle">experiment.py</text>
+<rect x="268" y="264" width="224" height="56" rx="3" ry="3" fill="#f5f5f5" stroke="#666666" stroke-width="1"/>
+<text x="380.0" y="289.5" font-size="12" font-weight="600" font-family="inherit" fill="#000000" text-anchor="middle">Estimate effect size</text>
+<text x="380.0" y="303.5" font-size="10.5" font-weight="400" font-family="Consolas, monospace" fill="#4d4d4d" text-anchor="middle">statistics_.py</text>
+<rect x="268" y="376" width="224" height="56" rx="3" ry="3" fill="#ffe6cc" stroke="#d79b00" stroke-width="1"/>
+<text x="380.0" y="401.5" font-size="12" font-weight="600" font-family="inherit" fill="#000000" text-anchor="middle">Decide</text>
+<text x="380.0" y="415.5" font-size="10.5" font-weight="400" font-family="Consolas, monospace" fill="#4d4d4d" text-anchor="middle">report.py</text>
+<rect x="566" y="152" width="154" height="44" rx="3" ry="3" fill="#f5f5f5" stroke="#666666" stroke-width="1"/>
+<text x="643.0" y="171.5" font-size="12" font-weight="600" font-family="inherit" fill="#000000" text-anchor="middle">clock.py</text>
+<text x="643.0" y="185.5" font-size="10.5" font-weight="400" font-family="Consolas, monospace" fill="#4d4d4d" text-anchor="middle">one launch</text>
+<rect x="566" y="264" width="154" height="44" rx="3" ry="3" fill="#f5f5f5" stroke="#666666" stroke-width="1"/>
+<text x="643.0" y="283.5" font-size="12" font-weight="600" font-family="inherit" fill="#000000" text-anchor="middle">history.py</text>
+<text x="643.0" y="297.5" font-size="10.5" font-weight="400" font-family="Consolas, monospace" fill="#4d4d4d" text-anchor="middle">saved runs</text>
+<rect x="566" y="376" width="154" height="56" rx="3" ry="3" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+<text x="643.0" y="401.5" font-size="12" font-weight="600" font-family="inherit" fill="#000000" text-anchor="middle">Verdict, or none</text>
+<text x="643.0" y="415.5" font-size="10.5" font-weight="400" font-family="Consolas, monospace" fill="#4d4d4d" text-anchor="middle">both gates</text>
+<path d="M 190 62 L 224 62 L 224 68 L 262 68" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="10" marker-end="url(#arrow)"/>
+<path d="M 190 138 L 224 138 L 224 68 L 262 68" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="10" marker-end="url(#arrow)"/>
+<path d="M 380.0 96 L 380.0 146" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="10" marker-end="url(#arrow)"/>
+<path d="M 380.0 208 L 380.0 258" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="10" marker-end="url(#arrow)"/>
+<path d="M 380.0 320 L 380.0 370" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="10" marker-end="url(#arrow)"/>
+<path d="M 492 404 L 560 404" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="10" marker-end="url(#arrow)"/>
+<path d="M 492 82 L 756 82 L 756 404 L 724 404" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="10" marker-end="url(#arrow)"/>
+<path d="M 492 174 L 560 174" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="10" marker-end="url(#arrow)"/>
+<path d="M 492 292 L 560 292" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="10" marker-end="url(#arrow)"/>
+<path d="M 643 432 L 643 458 L 115 458 L 115 166" fill="none" stroke="#999999" stroke-width="1" stroke-dasharray="3 3" stroke-miterlimit="10" marker-end="url(#arrowg)"/>
+<text x="750" y="240" font-size="9.5" fill="#333333" text-anchor="end">resolution floor</text>
+<text x="330" y="448" font-size="9.5" fill="#333333" text-anchor="middle">verdict returns to the caller</text>
 <defs>
-  <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5"
-          markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-    <path d="M 0 1 L 9 5 L 0 9 z" fill="#1f2320"/>
-  </marker>
-  <marker id="softtip" viewBox="0 0 10 10" refX="9" refY="5"
-          markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-    <path d="M 0 1 L 9 5 L 0 9 z" fill="#8a918c"/>
-  </marker>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#000000" stroke-width="1.2"/></marker>
+<marker id="arrowg" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#999999" stroke-width="1.2"/></marker>
 </defs>
 </svg>
