@@ -9,3 +9,4 @@ benchmeter-history.json
 native/verify
 native/verify.exe
 *.exe
+benchmeter-report*
