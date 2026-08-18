@@ -33,7 +33,7 @@ async function checkMachine() {
     renderMachine(await response.json());
     setStatus(status, "");
   } catch (error) {
-    setStatus(status, "lost contact with the local server", true);
+    setStatus(status, "local server unreachable", true);
   } finally {
     button.disabled = false;
   }
@@ -136,7 +136,7 @@ function intervalBar(comparison) {
   const zeroLabel = svg("text", {
     x: zeroX, y: 10, class: "zero-label", "text-anchor": "middle",
   });
-  zeroLabel.textContent = "no difference";
+  zeroLabel.textContent = "zero";
   chart.appendChild(zeroLabel);
 
   const barY = 34;
@@ -167,14 +167,12 @@ function intervalBar(comparison) {
   const caption = document.createElement("figcaption");
   caption.className = "interval__caption";
   caption.textContent =
-    `Best estimate ${percent(comparison.percent)}, and the true value is ` +
-    `almost certainly between ${percent(comparison.lowerPercent)} and ` +
-    `${percent(comparison.upperPercent)}. ` +
+    `Point estimate ${percent(comparison.percent)}, 95% interval ` +
+    `${percent(comparison.lowerPercent)} to ` +
+    `${percent(comparison.upperPercent)}` +
     (comparison.conclusive
-      ? "The whole range sits on one side of zero, which is what makes " +
-        "this trustworthy."
-      : "The range straddles zero, meaning no difference at all is still " +
-        "a live possibility.");
+      ? ", entirely on one side of zero."
+      : ", crossing zero.");
 
   figure.append(chart, caption);
   return figure;
@@ -184,21 +182,20 @@ function nextSteps(comparison, machine) {
   const steps = [];
   if (machine.drift >= 0.15) {
     steps.push(
-      `Your machine wandered by ${plain(machine.drift * 100)} while doing ` +
-      `nothing. Closing other apps would help.`
+      `Drift was ${plain(machine.drift * 100)} on an idle machine. ` +
+      `Close background load and repeat.`
     );
   }
   if (comparison.belowResolution) {
     steps.push(
-      `This machine can only detect differences of ` +
-      `${plain(machine.resolution * 100)} or more, and ` +
-      `${plain(Math.abs(comparison.percent))} is below that.`
+      `Noise floor is ${plain(machine.resolution * 100)}; observed ` +
+      `${plain(Math.abs(comparison.percent))} falls below it.`
     );
   }
   if (Math.abs(comparison.percent) < 1) {
-    steps.push("For practical purposes these are the same speed.");
+    steps.push("Difference under 1%; treat as equivalent.");
   } else {
-    steps.push("Giving it more time would narrow the range.");
+    steps.push("A larger budget narrows the interval.");
   }
   return steps;
 }
@@ -210,9 +207,7 @@ function renderVerdict(comparison, machine) {
 
   const label = document.createElement("p");
   label.className = "verdict__label";
-  label.textContent = comparison.conclusive
-    ? "Difference found"
-    : "Cannot tell";
+  label.textContent = comparison.conclusive ? "Result" : "Inconclusive";
   box.appendChild(label);
 
   const detail = document.createElement("p");
@@ -220,12 +215,11 @@ function renderVerdict(comparison, machine) {
   if (comparison.conclusive) {
     detail.textContent =
       `${comparison.variant} is ${plain(Math.abs(comparison.percent))} ` +
-      `${comparison.faster ? "faster" : "slower"} than ` +
-      `${comparison.baseline}. This is a real difference.`;
+      `${comparison.faster ? "faster" : "slower"} than ${comparison.baseline}.`;
   } else {
     detail.textContent =
-      `The two came out ${plain(Math.abs(comparison.percent))} apart, ` +
-      `which is too close to call. They may well be the same speed.`;
+      `Observed ${plain(Math.abs(comparison.percent))}, interval spans ` +
+      `zero. No difference established.`;
   }
   box.appendChild(detail);
   box.appendChild(intervalBar(comparison));
@@ -338,28 +332,23 @@ function renderScatter(series) {
     legend.appendChild(entry);
   });
   const dashed = document.createElement("span");
-  dashed.textContent = "dashed line = median";
+  dashed.textContent = "dashed: median";
   legend.appendChild(dashed);
   host.appendChild(legend);
 
   const clippedNote = clipped
-    ? ` ${clipped} run${clipped > 1 ? "s were" : " was"} slower than the ` +
-      `top of the chart and sit pinned to the upper edge.`
+    ? ` Axis clipped at the 97th percentile; ${clipped} sample` +
+      `${clipped > 1 ? "s" : ""} pinned to the top edge.`
     : "";
   el("scatter-caption").textContent =
-    "If the points look evenly scattered, the machine held steady. A " +
-    "visible slope or sudden step means it changed speed partway through, " +
-    "which is exactly what alternating the two commands protects against." +
-    clippedNote;
+    "A slope or step indicates drift during the run." + clippedNote;
 }
 
 function renderResults(data) {
   renderRows(data.series);
-  el("run-caption").textContent =
-    "Each command was run the same number of times, alternating between " +
-    "them.";
+  el("run-caption").textContent = "Interleaved, shuffled order";
   el("results-state").textContent =
-    `${data.rounds} rounds` + (data.stoppedEarly ? ", stopped early" : "");
+    `n=${data.rounds}` + (data.stoppedEarly ? ", stopped early" : "");
   renderScatter(data.series);
 
   const verdicts = el("verdicts");
@@ -381,7 +370,7 @@ async function runMeasurement() {
   };
 
   button.disabled = true;
-  setStatus(status, "running both commands, please wait…");
+  setStatus(status, "measuring…");
 
   try {
     const response = await fetch("/api/measure", {
@@ -397,7 +386,7 @@ async function runMeasurement() {
     renderResults(data);
     setStatus(status, "");
   } catch (error) {
-    setStatus(status, "lost contact with the local server", true);
+    setStatus(status, "local server unreachable", true);
   } finally {
     button.disabled = false;
   }

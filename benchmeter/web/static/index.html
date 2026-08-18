@@ -21,19 +21,18 @@
 
   <section class="section">
     <div class="section__head">
-      <h2 class="section__heading">Check the machine</h2>
+      <h2 class="section__heading">Machine</h2>
       <span class="section__state" id="instrument-state"></span>
     </div>
     <div class="column-pair">
       <div>
         <p class="lede">
-          Your laptop speeds up and slows down on its own, and that puts a
-          floor on how small a difference you can detect. Worth measuring
-          before you trust any result.
+          Runs a fixed workload to find this machine's noise floor.
+          Anything smaller than that cannot be measured here.
         </p>
         <div class="actions">
           <button type="button" id="check-machine" class="secondary">
-            Measure this machine
+            Measure
           </button>
           <span class="status" id="machine-status"></span>
         </div>
@@ -42,51 +41,47 @@
             <tr>
               <th scope="row">Condition</th>
               <td id="machine-grade">—</td>
-              <td class="figures__note">quiet, unsettled or noisy</td>
+              <td class="figures__note"></td>
             </tr>
             <tr>
-              <th scope="row">Drift while idle</th>
+              <th scope="row">Drift</th>
               <td id="machine-drift">—</td>
-              <td class="figures__note">how much the speed wanders</td>
+              <td class="figures__note">speed change during the run</td>
             </tr>
             <tr>
-              <th scope="row">Sample variation</th>
+              <th scope="row">Variation</th>
               <td id="machine-variation">—</td>
-              <td class="figures__note">spread of individual runs</td>
+              <td class="figures__note">run-to-run spread</td>
             </tr>
             <tr>
               <th scope="row">Autocorrelation</th>
               <td id="machine-autocorr">—</td>
-              <td class="figures__note">near zero means runs are independent</td>
+              <td class="figures__note">0 if runs are independent</td>
             </tr>
             <tr class="figures__key">
-              <th scope="row">Smallest detectable</th>
+              <th scope="row">Noise floor</th>
               <td id="machine-resolution">—</td>
-              <td class="figures__note">anything below this is invisible here</td>
+              <td class="figures__note">smallest difference it can resolve</td>
             </tr>
           </tbody>
         </table>
       </div>
       <aside class="margin-note">
-        <p class="margin-note__label">Why this matters</p>
-        <p id="machine-advice">
-          A ruler marked in millimetres cannot measure half a millimetre.
-          Same idea here: if your machine can only detect 3% differences,
-          chasing a 1% regression is wasted effort.
-        </p>
+        <p class="margin-note__label">Reading</p>
+        <p id="machine-advice">Not measured yet.</p>
       </aside>
     </div>
   </section>
 
   <section class="section">
     <div class="section__head">
-      <h2 class="section__heading">Compare two commands</h2>
+      <h2 class="section__heading">Comparison</h2>
     </div>
     <div class="column-pair">
       <div>
         <div class="field">
           <label class="field__label" for="command-a">
-            <span class="field__tag">A</span>First command
+            <span class="field__tag">A</span>Baseline
           </label>
           <div class="field__row">
             <input type="text" id="command-a" value="python -c pass"
@@ -99,7 +94,7 @@
 
         <div class="field">
           <label class="field__label" for="command-b">
-            <span class="field__tag">B</span>Second command
+            <span class="field__tag">B</span>Variant
           </label>
           <div class="field__row">
             <input type="text" id="command-b"
@@ -110,18 +105,16 @@
                    aria-label="Name for the second command">
           </div>
           <span class="field__hint">
-            The box on the right is just the name shown in results.
+            Right-hand field is the display label.
           </span>
         </div>
 
         <div class="field">
-          <label class="field__label" for="budget">How long to spend</label>
+          <label class="field__label" for="budget">Budget</label>
           <div class="field__row field__row--narrow">
             <input type="number" id="budget" value="20" min="5" max="120"
                    step="5">
-            <span class="field__unit">
-              seconds — stops early once the answer is clear
-            </span>
+            <span class="field__unit">seconds at most</span>
           </div>
         </div>
 
@@ -131,13 +124,12 @@
         </div>
       </div>
       <aside class="margin-note">
-        <p class="margin-note__label">What happens when you press run</p>
+        <p class="margin-note__label">Procedure</p>
         <ol class="procedure">
-          <li>Both commands run a few times and those runs are thrown
-              away, so neither gets blamed for a cold start.</li>
-          <li>Each round runs A once and B once, in random order.</li>
-          <li>Rounds keep going until the answer is clear or time runs
-              out.</li>
+          <li>Three warmup rounds, discarded.</li>
+          <li>Each round runs A and B once, order shuffled.</li>
+          <li>Repeats until the result is clear or the budget runs out.</li>
+          <li>Interval from resampling the paired rounds.</li>
         </ol>
       </aside>
     </div>
@@ -154,18 +146,18 @@
       <thead>
         <tr>
           <th scope="col">Command</th>
-          <th scope="col">Typical</th>
+          <th scope="col">Median</th>
           <th scope="col">Spread</th>
           <th scope="col">Fastest</th>
           <th scope="col">Slowest</th>
-          <th scope="col">Runs</th>
+          <th scope="col">n</th>
         </tr>
       </thead>
       <tbody id="results-body"></tbody>
     </table>
 
     <div class="scatter-block">
-      <p class="scatter-block__label">Every run, in the order measured</p>
+      <p class="scatter-block__label">Samples in measurement order</p>
       <div id="scatter"></div>
       <p class="scatter-block__caption" id="scatter-caption"></p>
     </div>
@@ -175,9 +167,8 @@
 
   <footer class="footnote">
     <p>
-      Everything runs on this machine and nothing is sent anywhere. The
-      alternating method is known as randomised multiple interleaved
-      trials in the performance measurement literature.
+      Runs locally and sends nothing. The interleaved scheme is known as
+      randomised multiple interleaved trials.
     </p>
   </footer>
 
