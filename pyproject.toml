@@ -1,16 +1,26 @@
 [project]
-name = "doluong"
+name = "benchmeter"
 version = "0.1.0"
-description = "Do hieu nang va biet khi nao khong du tin de ket luan"
+description = "Performance measurement that reports its own reliability"
+readme = "README.md"
 requires-python = ">=3.9"
 dependencies = []
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
 
 [project.scripts]
-doluong = "doluong.giaodien:chay"
+benchmeter = "benchmeter.cli:main"
 
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["doluong"]
+packages = ["benchmeter", "benchmeter.web"]
+
+[tool.setuptools.package-data]
+"benchmeter.web" = ["static/*"]

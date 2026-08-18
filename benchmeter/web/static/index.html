@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>benchmeter — measurement worksheet</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="sheet">
+
+  <header class="masthead">
+    <p class="masthead__course">Worksheet · timing measurement</p>
+    <h1 class="masthead__title">benchmeter</h1>
+    <p class="masthead__subtitle">
+      Compares how long two commands take, and says so only when the
+      evidence supports it. When it does not, it says that instead.
+    </p>
+  </header>
+
+  <section class="section">
+    <h2 class="section__heading" data-index="1">Instrument check</h2>
+    <p>
+      Every measurement is limited by the instrument taking it. This one
+      is limited by the machine you are on, so that gets measured first.
+    </p>
+    <div class="actions">
+      <button type="button" id="check-machine" class="secondary">
+        Measure this machine
+      </button>
+      <span class="status" id="machine-status"></span>
+    </div>
+    <dl class="readout" id="machine-readout" hidden>
+      <dt>condition</dt><dd id="machine-grade">—</dd>
+      <dt>drift while idle</dt><dd id="machine-drift">—</dd>
+      <dt>smallest resolvable</dt><dd id="machine-resolution">—</dd>
+      <dt>reading</dt><dd id="machine-advice">—</dd>
+    </dl>
+  </section>
+
+  <section class="section">
+    <h2 class="section__heading" data-index="2">Specimens</h2>
+    <p>
+      Two commands to compare. They run alternately rather than one after
+      the other, so both meet the same machine conditions.
+    </p>
+
+    <div class="field">
+      <label class="field__label" for="command-a">Specimen A</label>
+      <div class="field__row">
+        <input type="text" id="command-a" value="python -c pass"
+               spellcheck="false" autocomplete="off">
+        <input type="text" id="label-a" value="baseline"
+               spellcheck="false" autocomplete="off" aria-label="Label for A">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="command-b">Specimen B</label>
+      <div class="field__row">
+        <input type="text" id="command-b" value="python -c &quot;sum(range(200000))&quot;"
+               spellcheck="false" autocomplete="off">
+        <input type="text" id="label-b" value="variant"
+               spellcheck="false" autocomplete="off" aria-label="Label for B">
+      </div>
+      <p class="field__hint">
+        Right-hand box is the name shown in the results.
+      </p>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="budget">Time allowed (seconds)</label>
+      <input type="number" id="budget" value="20" min="5" max="120" step="5">
+      <p class="field__hint">
+        Stops early once the answer is clear. Longer budgets only matter
+        for differences too small to settle quickly.
+      </p>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="run">Run measurement</button>
+      <span class="status" id="run-status"></span>
+    </div>
+  </section>
+
+  <section class="section" id="results" hidden>
+    <h2 class="section__heading" data-index="3">Observations</h2>
+
+    <table>
+      <caption id="run-caption">Timings</caption>
+      <thead>
+        <tr>
+          <th scope="col">Specimen</th>
+          <th scope="col">Median</th>
+          <th scope="col">Spread</th>
+          <th scope="col">Samples</th>
+        </tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+
+    <div id="verdicts"></div>
+  </section>
+
+  <footer class="footnote">
+    <p>
+      Runs entirely on your own machine; nothing is uploaded. Interleaved
+      measurement follows the randomised multiple interleaved trials
+      method described in the performance-evaluation literature.
+    </p>
+  </footer>
+
+</main>
+<script src="app.js"></script>
+</body>
+</html>

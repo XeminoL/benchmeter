@@ -5,7 +5,7 @@ dist/
 build/
 .venv/
 venv/
-.pytest_cache/
-ketqua_*.json
-dolai
+benchmeter-history.json
+native/verify
+native/verify.exe
 *.exe
