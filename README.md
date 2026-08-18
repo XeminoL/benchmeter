@@ -90,9 +90,36 @@ python -m unittest discover tests
 - **Executes the commands it is given.** The server binds to loopback and rejects requests that did not originate from its own page. It is not a sandbox.
 - **Figures are properties of the host,** not of the tool.
 
+## Scope
+
+Version 1.0 is complete for what it set out to do: compare commands by
+elapsed time on an ordinary machine, and withhold a verdict when the host
+cannot support one. Three directions are deliberately left out.
+
+- **In-process timing.** Every sample launches a subprocess, so interpreter
+  start-up is included in all of them. On the reference machine that is
+  roughly 90 ms, which dominates any workload shorter than about 300,000
+  loop iterations. Timing inside a single process would remove the floor and
+  widen the range of things worth measuring. It would also be a different
+  tool.
+- **A library interface.** The interleaving, the paired bootstrap and the
+  resolution floor are useful apart from the command-line front end, and
+  nothing in `pytest-benchmark`, Criterion or JMH refuses to answer the way
+  this does. Exposing the core for others to embed is a larger commitment
+  than shipping a tool.
+- **A CI integration.** The `0`/`2` exit codes already separate a regression
+  from a busy runner, which is the part CI actually needs. A packaged action
+  would go further and is not attempted here.
+
+For measuring a function rather than a command, use Criterion, JMH or
+`pytest-benchmark`. For counting instructions rather than time, use
+`cachegrind` or `perf stat`. Those are better answers to their own questions.
+
 ## Origin
 
-A first-year physics laboratory, where a measurement without an uncertainty is not a result and the resolution of the instrument is established before a reading is trusted.
+A first-year physics laboratory, where a measurement without an uncertainty
+is not a result and the resolution of the instrument is established before a
+reading is trusted.
 
 ## License
 
