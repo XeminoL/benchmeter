@@ -71,6 +71,8 @@ def run_measurement(payload: dict) -> dict:
         },
         "rounds": measurement.rounds,
         "stoppedEarly": measurement.stopped_early,
+        "overran": measurement.overran,
+        "elapsedSeconds": measurement.elapsed_ns / 1e9,
         "conclusive": report.conclusive,
         "series": [
             {
@@ -149,13 +151,6 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def request_is_local(self) -> bool:
-        """Reject anything that did not come from a page we served.
-
-        The server executes shell commands, so a page on any other site
-        must not be able to reach it. Browsers cannot forge Origin, and
-        they cannot read the token out of a cross-origin response, so
-        checking both closes the hole.
-        """
         origin = self.headers.get("Origin")
         if origin:
             host = urlparse(origin).hostname

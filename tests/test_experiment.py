@@ -6,7 +6,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from benchmeter import experiment, history, machine, report as reporting
-from benchmeter import statistics_ as stats
 
 TRIVIAL_COMMAND = "python -c pass"
 FAILING_COMMAND = 'python -c "raise SystemExit(1)"'

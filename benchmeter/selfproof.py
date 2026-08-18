@@ -7,6 +7,7 @@ from typing import Callable, Sequence
 
 from . import statistics_ as stats
 from .clock import format_duration
+from .layout import rule
 
 TOTAL_RUNS = 6000
 BLOCK_SIZE = 300
@@ -14,7 +15,7 @@ WINDOW_SIZE = 40
 MAX_PAIRS = 150
 TASK_ITERATIONS = 3000
 SELFPROOF_RESAMPLES = 400
-RULE_WIDTH = 58
+BANNER_WIDTH = 58
 
 
 @dataclass(frozen=True)
@@ -90,7 +91,7 @@ def run(emit: Callable[[str], None] = print,
         total_runs: int = TOTAL_RUNS) -> ProofResult:
     emit("")
     emit("SELF-PROOF")
-    emit("=" * RULE_WIDTH)
+    emit(rule(BANNER_WIDTH, "="))
     emit("Measures one single task repeatedly, then splits the samples")
     emit("in two. Any 'significant difference' found is a false positive,")
     emit("because both halves are the same task.")
@@ -109,7 +110,7 @@ def run(emit: Callable[[str], None] = print,
 
     emit("")
     emit("1. DOES THE MACHINE DRIFT WHILE MEASURING?")
-    emit("-" * RULE_WIDTH)
+    emit(rule(BANNER_WIDTH))
     emit(f"   fastest block : {format_duration(fastest)}")
     emit(f"   slowest block : {format_duration(slowest)}")
     emit(f"   difference    : {drift * 100:.1f}%")
@@ -122,7 +123,7 @@ def run(emit: Callable[[str], None] = print,
 
     emit("")
     emit("2. SEQUENTIAL MEASUREMENT, CLASSICAL TEST")
-    emit("-" * RULE_WIDTH)
+    emit(rule(BANNER_WIDTH))
     emit(f"   reported a difference {sequential_errors}/{sequential_trials} "
          f"times = {sequential_rate * 100:.1f}%")
     emit("   -> every one of them is wrong; it is the same task.")
@@ -132,14 +133,14 @@ def run(emit: Callable[[str], None] = print,
 
     emit("")
     emit("3. INTERLEAVED MEASUREMENT")
-    emit("-" * RULE_WIDTH)
+    emit(rule(BANNER_WIDTH))
     emit(f"   reported a difference {interleaved_errors}/{interleaved_trials} "
          f"times = {interleaved_rate * 100:.1f}%")
 
     result = ProofResult(drift, sequential_rate, interleaved_rate)
 
     emit("")
-    emit("=" * RULE_WIDTH)
+    emit(rule(BANNER_WIDTH, "="))
     if result.improvement > 0:
         emit(f"   Interleaving removed {result.improvement * 100:.0f}% of the "
              f"false positives")

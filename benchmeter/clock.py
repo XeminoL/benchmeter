@@ -5,7 +5,6 @@ import time
 from dataclasses import dataclass
 
 NANOSECONDS_PER_SECOND = 1_000_000_000
-DURATION_PROBE_RUNS = 5
 
 
 @dataclass(frozen=True)
@@ -29,11 +28,6 @@ def time_once(command: str, label: str = "") -> Run:
 def is_runnable(command: str) -> tuple[bool, int]:
     run = time_once(command)
     return run.succeeded, run.elapsed_ns
-
-
-def estimate_duration_ns(command: str, runs: int = DURATION_PROBE_RUNS) -> int:
-    samples = sorted(time_once(command).elapsed_ns for _ in range(runs))
-    return samples[len(samples) // 2]
 
 
 def to_seconds(nanoseconds: float) -> float:

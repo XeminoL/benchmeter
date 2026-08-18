@@ -4,16 +4,17 @@ import random
 from dataclasses import dataclass, field
 from typing import Callable, Sequence
 
+import time
+
 from . import statistics_ as stats
-from .clock import Run, estimate_duration_ns, time_once
+from .clock import Run, time_once
 
 WARMUP_ROUNDS = 3
-WARMUP_BUDGET_THRESHOLD = 3.0
-MIN_ROUNDS = 1
 MIN_ROUNDS_FOR_INTERVAL = 10
 MAX_ROUNDS = 400
 CHECK_INTERVAL = 10
 DEFAULT_BUDGET_SECONDS = 30
+WARMUP_BUDGET_SHARE = 0.1
 NANOSECONDS_PER_SECOND = 1_000_000_000
 
 
@@ -38,30 +39,26 @@ class Measurement:
     series: list[Series]
     rounds: int
     stopped_early: bool
+    elapsed_ns: int = 0
+    budget_ns: int = 0
+
+    @property
+    def overran(self) -> bool:
+        if not self.budget_ns or not self.rounds:
+            return False
+        return self.elapsed_ns / self.rounds > self.budget_ns
 
     @property
     def labels(self) -> list[str]:
         return [item.label for item in self.series]
 
 
-def warm_up(commands: Sequence[str], rounds: int = WARMUP_ROUNDS) -> None:
-    for _ in range(rounds):
+def warm_up(commands: Sequence[str], deadline_ns: int) -> None:
+    for _ in range(WARMUP_ROUNDS):
         for command in commands:
+            if time.perf_counter_ns() >= deadline_ns:
+                return
             time_once(command)
-
-
-def plan_rounds(commands: Sequence[str], budget_seconds: float) -> int:
-    probe_runs = 1 if budget_seconds < WARMUP_BUDGET_THRESHOLD else None
-    per_round = sum(
-        estimate_duration_ns(command)
-        if probe_runs is None
-        else estimate_duration_ns(command, runs=probe_runs)
-        for command in commands
-    )
-    if per_round <= 0:
-        return MAX_ROUNDS
-    affordable = int(budget_seconds * NANOSECONDS_PER_SECOND / per_round)
-    return max(min(affordable, MAX_ROUNDS), MIN_ROUNDS)
 
 
 def is_settled(series: Sequence[Series], seed: int | None,
@@ -83,6 +80,15 @@ def is_settled(series: Sequence[Series], seed: int | None,
     return True
 
 
+def decided_early(series: Sequence[Series], completed: int,
+                  seed: int | None, resolution: float) -> bool:
+    if len(series) < 2 or completed < MIN_ROUNDS_FOR_INTERVAL * 2:
+        return False
+    if completed % CHECK_INTERVAL:
+        return False
+    return is_settled(series, seed, resolution)
+
+
 def measure(
     commands: Sequence[str],
     labels: Sequence[str] | None = None,
@@ -97,30 +103,41 @@ def measure(
     rng = random.Random(seed)
     series = [Series(label) for label in labels]
 
-    if budget_seconds >= WARMUP_BUDGET_THRESHOLD:
-        warm_up(commands)
-    if rounds is None:
-        rounds = plan_rounds(commands, budget_seconds)
+    started_ns = time.perf_counter_ns()
+    budget_ns = int(max(budget_seconds, 0) * NANOSECONDS_PER_SECOND)
+    deadline_ns = started_ns + budget_ns
 
+    warm_up(commands, started_ns + int(budget_ns * WARMUP_BUDGET_SHARE))
+
+    limit = rounds if rounds is not None else MAX_ROUNDS
+    bounded_by_time = rounds is None
     order = list(range(len(commands)))
     stopped_early = False
     completed = 0
 
-    for completed in range(1, rounds + 1):
+    while completed < limit:
+        out_of_time = (bounded_by_time and completed > 0
+                       and time.perf_counter_ns() >= deadline_ns)
+        if out_of_time:
+            break
+
         if shuffle:
             rng.shuffle(order)
         for index in order:
             series[index].record(time_once(commands[index], labels[index]))
+        completed += 1
 
         if on_progress:
-            on_progress(completed, rounds)
+            on_progress(completed, limit)
 
-        long_enough = completed >= MIN_ROUNDS_FOR_INTERVAL * 2
-        at_checkpoint = completed % CHECK_INTERVAL == 0
-        if long_enough and at_checkpoint and len(series) > 1:
-            if is_settled(series, seed, resolution):
-                stopped_early = True
-                break
+        if decided_early(series, completed, seed, resolution):
+            stopped_early = True
+            break
 
-    return Measurement(series=series, rounds=completed,
-                       stopped_early=stopped_early)
+    return Measurement(
+        series=series,
+        rounds=completed,
+        stopped_early=stopped_early,
+        elapsed_ns=time.perf_counter_ns() - started_ns,
+        budget_ns=budget_ns,
+    )

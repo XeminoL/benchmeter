@@ -6,13 +6,13 @@ import sys
 
 from . import history, machine, report as reporting
 from .clock import is_runnable
+from .layout import rule
 from .experiment import DEFAULT_BUDGET_SECONDS, measure
 from .web.server import DEFAULT_PORT, serve
 
 EXIT_OK = 0
 EXIT_ERROR = 1
 EXIT_INCONCLUSIVE = 2
-RULE_WIDTH = 56
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -56,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
 def print_machine(state: machine.MachineState) -> None:
     print()
     print("MACHINE")
-    print("-" * RULE_WIDTH)
+    print(rule())
     print(f"  grade           : {state.grade}")
     print(f"  drift           : {state.drift * 100:.1f}%")
     print(f"  variation       : {state.variation * 100:.1f}%")

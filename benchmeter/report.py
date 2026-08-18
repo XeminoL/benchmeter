@@ -5,11 +5,11 @@ from dataclasses import dataclass
 from . import statistics_ as stats
 from .clock import format_duration
 from .experiment import Measurement, Series
+from .layout import rule
 from .machine import MachineState
 
 MAX_SUGGESTED_ROUNDS = 5000
 NEGLIGIBLE_DIFFERENCE_PERCENT = 1.0
-RULE_WIDTH = 56
 
 
 @dataclass(frozen=True)
@@ -140,7 +140,7 @@ def explain_conclusive(comparison: Comparison,
 def render(report: Report) -> str:
     measurement = report.measurement
     machine = report.machine
-    lines = ["", "MEASUREMENT", "-" * RULE_WIDTH]
+    lines = ["", "MEASUREMENT", rule()]
 
     for series in measurement.series:
         lines.append("  " + format_series_line(series))
@@ -161,7 +161,7 @@ def render(report: Report) -> str:
 
     for comparison in report.comparisons:
         lines.append("")
-        lines.append("-" * RULE_WIDTH)
+        lines.append(rule())
         if comparison.conclusive:
             lines.extend(explain_conclusive(comparison, machine))
         else:

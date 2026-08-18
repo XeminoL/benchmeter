@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from . import statistics_ as stats
+from .layout import rule
 from .report import Report
 
 HISTORY_FILENAME = "benchmeter-history.json"
 COMPARABILITY_THRESHOLD = 0.10
-RULE_WIDTH = 56
 
 
 @dataclass(frozen=True)
@@ -106,7 +106,7 @@ def render(comparison: HistoryComparison | None) -> str:
     if not comparison:
         return ""
 
-    lines = ["", "COMPARED WITH PREVIOUS RUN", "-" * RULE_WIDTH]
+    lines = ["", "COMPARED WITH PREVIOUS RUN", rule()]
     for label, percent in comparison.changes:
         direction = "slower" if percent > 0 else "faster"
         lines.append(f"  {label:<28} {direction} by {abs(percent):.1f}%")

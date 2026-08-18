@@ -336,6 +336,14 @@ function renderScatter(series) {
 
 function renderResults(data) {
   lastReport = data;
+  const notice = el("run-status");
+  if (data.overran) {
+    setStatus(notice,
+      `One round of your commands takes ` +
+      `${data.elapsedSeconds.toFixed(2)}s, so the budget could not be met.`);
+  } else {
+    setStatus(notice, "");
+  }
   renderRows(data.series);
   renderScatter(data.series);
 
@@ -463,7 +471,6 @@ async function runMeasurement() {
       return;
     }
     renderResults(data);
-    setStatus(status, "");
   } catch (error) {
     if (error.name === "AbortError") {
       setStatus(status, "cancelled");

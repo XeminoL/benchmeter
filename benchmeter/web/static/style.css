@@ -100,20 +100,9 @@ body {
   margin: 0;
 }
 
-.section__state {
-  font-family: var(--mono-face);
-  font-size: 13px;
-  color: var(--text-faint);
-  white-space: nowrap;
-}
-
 p {
   margin: 0 0 16px;
   max-width: 66ch;
-}
-
-.lede {
-  color: var(--text-soft);
 }
 
 .reading {
@@ -159,15 +148,9 @@ p {
   align-items: center;
 }
 
-.field__unit,
-.field__hint {
+.field__unit {
   font-size: 14px;
   color: var(--text-faint);
-}
-
-.field__hint {
-  display: block;
-  margin-top: 8px;
 }
 
 input[type="text"],
@@ -276,12 +259,6 @@ caption {
   font-family: var(--mono-face);
   font-weight: 600;
   white-space: nowrap;
-}
-
-.figures__note {
-  font-size: 14px;
-  color: var(--text-faint);
-  line-height: 1.4;
 }
 
 .figures__key th,
@@ -593,10 +570,6 @@ caption {
 
   .figures th {
     width: auto;
-  }
-
-  .figures__note {
-    display: none;
   }
 
   .data {
