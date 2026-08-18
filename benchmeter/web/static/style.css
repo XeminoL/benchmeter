@@ -89,20 +89,18 @@ body {
 }
 
 .masthead__caret {
-  width: 0.55ch;
-  height: 1.5rem;
-  margin-left: 0.35ch;
+  width: 0.6ch;
+  height: 1.6rem;
+  margin-left: 0.4ch;
   background: var(--accent);
-  animation: caret-blink 1.15s steps(1) infinite;
+  animation: caret-blink 1s steps(2, jump-none) infinite;
 }
 
 @keyframes caret-blink {
-  0%,
-  50% {
+  from {
     opacity: 1;
   }
-  51%,
-  100% {
+  to {
     opacity: 0;
   }
 }
