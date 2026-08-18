@@ -1,5 +1,6 @@
 :root {
   --paper: #fbfbf7;
+  --paper-raised: #ffffff;
   --grid-fine: #e6ebe6;
   --grid-bold: #cdd7cf;
   --ink: #161a16;
@@ -9,7 +10,40 @@
   --confirmed: #1d5230;
   --measure: 62ch;
   --step: 8px;
+  --button-face: #161a16;
+  --button-text: #fbfbf7;
   --face: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+}
+
+:root[data-theme="dark"] {
+  --paper: #10141a;
+  --paper-raised: #181d25;
+  --grid-fine: #2a3240;
+  --grid-bold: #3f4a5c;
+  --ink: #e4e9e2;
+  --ink-soft: #a2aba7;
+  --ink-faint: #737d89;
+  --correction: #e58878;
+  --confirmed: #85c19c;
+  --button-face: #232a34;
+  --button-text: #e4e9e2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10141a;
+    --paper-raised: #181d25;
+    --grid-fine: #2a3240;
+    --grid-bold: #3f4a5c;
+    --ink: #e4e9e2;
+    --ink-soft: #a2aba7;
+    --ink-faint: #737d89;
+    --correction: #e58878;
+    --confirmed: #85c19c;
+    --button-face: #232a34;
+    --button-text: #e4e9e2;
+  --button-text: #e4e9e2;
+  }
 }
 
 *,
@@ -242,23 +276,24 @@ input[type="number"] {
 input:focus {
   outline: none;
   border-color: var(--ink);
-  background: #fff;
+  background: var(--paper-raised);
 }
 
 button {
   font-family: inherit;
   font-size: inherit;
-  color: var(--paper);
-  background: var(--ink);
-  border: 1px solid var(--ink);
+  color: var(--button-text);
+  background: var(--button-face);
+  border: 1px solid var(--button-face);
   border-radius: 0;
   padding: calc(var(--step) * 0.85) calc(var(--step) * 3);
   cursor: pointer;
 }
 
 button:hover:not(:disabled) {
-  background: var(--paper);
+  background: transparent;
   color: var(--ink);
+  border-color: var(--ink);
 }
 
 button:disabled {
@@ -631,5 +666,31 @@ caption {
   * {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+.theme-toggle {
+  position: fixed;
+  top: calc(var(--step) * 2);
+  right: calc(var(--step) * 2);
+  z-index: 10;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: calc(var(--step) * 0.6) calc(var(--step) * 1.5);
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--grid-bold);
+}
+
+.theme-toggle:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--paper);
+}
+
+@media print {
+  .theme-toggle {
+    display: none;
   }
 }

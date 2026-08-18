@@ -400,3 +400,37 @@ function stamp() {
 }
 
 stamp();
+
+const THEME_KEY = "benchmeter-theme";
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme) {
+    root.setAttribute("data-theme", theme);
+  } else {
+    root.removeAttribute("data-theme");
+  }
+  const dark = theme
+    ? theme === "dark"
+    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  el("theme-toggle").textContent = dark ? "light sheet" : "dark sheet";
+}
+
+function currentTheme() {
+  const stored = localStorage.getItem(THEME_KEY);
+  if (stored === "dark" || stored === "light") return stored;
+  return null;
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const dark = root.getAttribute("data-theme") === "dark" ||
+    (!root.hasAttribute("data-theme") &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const next = dark ? "light" : "dark";
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+}
+
+applyTheme(currentTheme());
+el("theme-toggle").addEventListener("click", toggleTheme);
