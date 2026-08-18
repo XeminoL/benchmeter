@@ -50,6 +50,8 @@ Cột C có ở [`loinhan/`](loinhan/) — viết lại bằng C để loại tr
 
 **Từ chối trả lời khi khoảng tin cậy còn chứa số 0.** Chưa loại trừ được khả năng hai bên nhanh như nhau thì không kết luận.
 
+**Từ chối luôn khi chênh lệch nằm dưới ngưỡng phân giải của máy.** Máy trôi 48% mà báo "chậm hơn 1,9%" là kết luận nằm dưới mức máy có thể phân biệt — khoảng tin cậy không biết điều đó, vì nó chỉ nói về đám mẫu đã thu được.
+
 ## Dùng
 
 ```bash

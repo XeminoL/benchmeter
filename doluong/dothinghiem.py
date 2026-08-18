@@ -62,24 +62,32 @@ def SO_LAN_TOI_MIN_AN_TOAN(uoc):
     return min(uoc, SO_LAN_TOI_DA)
 
 
-def da_du_tin(mau, hat_giong):
-    """Da phan biet duoc chua - dung de dung som khi ro rang."""
+def da_du_tin(mau, hat_giong, phan_giai=0.0):
+    """Da phan biet duoc chua - dung de dung som khi ro rang.
+
+    Chi dung som khi chenh lech VUOT nguong phan giai cua may. Neu chi
+    dua vao khoang tin cay thi se dung som o muc chenh lech ma may nay
+    von khong phan biet noi.
+    """
     if len(mau) < 2:
         return False
     goc = mau[0]
     for khac in mau[1:]:
         if len(goc) < SO_LAN_TOI_THIEU or len(khac) < SO_LAN_TOI_THIEU:
             return False
-        _, duoi, tren = thongke.khoang_tin_cay_hieu(
+        ty_le, duoi, tren = thongke.khoang_tin_cay_hieu(
             goc.thoi_gian, khac.thoi_gian, hat_giong=hat_giong)
         if not thongke.du_tin_de_ket_luan(duoi, tren):
+            return False
+        if abs(ty_le - 1) < phan_giai:
             return False
     return True
 
 
 def do_xen_ke(cac_lenh, cac_nhan=None, so_lan=None,
               ngan_sach_giay=NGAN_SACH_GIAY_MAC_DINH,
-              hat_giong=None, xao_thu_tu=True, bao_tien_do=None):
+              hat_giong=None, xao_thu_tu=True, bao_tien_do=None,
+              phan_giai_may=0.0):
     """Do nhieu lenh xen ke nhau trong cung mot vong.
 
     Do het lenh A roi moi do lenh B thi may co the doi trang thai
@@ -115,7 +123,7 @@ def do_xen_ke(cac_lenh, cac_nhan=None, so_lan=None,
         du_dai = vong >= SO_LAN_TOI_THIEU * 2
         den_moc = vong % BUOC_KIEM == 0
         if du_dai and den_moc and len(mau) > 1:
-            if da_du_tin(mau, hat_giong):
+            if da_du_tin(mau, hat_giong, phan_giai_may):
                 dung_som = True
                 break
 

@@ -93,6 +93,45 @@ class TestBaoCao(unittest.TestCase):
         self.assertIn("chua kiem", ketluan.in_bao_cao(bao_cao))
 
 
+class TestKhongKetLuanDuoiNguongMay(unittest.TestCase):
+    """Loi that da gap: may troi 48%, phan giai 4.5%, ma van bao
+    'cham hon 1.9%'. Ket luan nam duoi muc may phan biet noi."""
+
+    @staticmethod
+    def _mau(nhan, thoi_gian):
+        m = dothinghiem.MauDo(nhan)
+        m.thoi_gian = list(thoi_gian)
+        return m
+
+    def _phan_tich(self, a, b, phan_giai):
+        ket_qua = dothinghiem.KetQuaThiNghiem(
+            mau=[self._mau("a", a), self._mau("b", b)],
+            so_vong=len(a), dung_som=False, ngan_sach_het=True)
+        may = chandoan.TinhTrangMay(0.48, 0.15, phan_giai, 0.0)
+        return ketluan.phan_tich(ket_qua, may, hat_giong=1)
+
+    def test_tu_choi_khi_lech_duoi_phan_giai_may(self):
+        a = [1000 + (i % 3) for i in range(200)]
+        b = [1019 + (i % 3) for i in range(200)]
+        bao_cao = self._phan_tich(a, b, phan_giai=0.045)
+        self.assertFalse(
+            bao_cao.co_ket_luan,
+            "lech 1.9% ma may chi phan biet duoc tu 4.5% - phai tu choi")
+
+    def test_van_ket_luan_khi_lech_vuot_phan_giai(self):
+        a = [1000 + (i % 3) for i in range(200)]
+        b = [1500 + (i % 3) for i in range(200)]
+        bao_cao = self._phan_tich(a, b, phan_giai=0.045)
+        self.assertTrue(bao_cao.co_ket_luan)
+
+    def test_dung_som_cung_ton_trong_nguong_may(self):
+        mau = [self._mau("a", [1000] * 40), self._mau("b", [1019] * 40)]
+        self.assertFalse(
+            dothinghiem.da_du_tin(mau, hat_giong=1, phan_giai=0.045))
+        self.assertTrue(
+            dothinghiem.da_du_tin(mau, hat_giong=1, phan_giai=0.0))
+
+
 class TestNguongAnToan(unittest.TestCase):
     def test_khoang_vua_cham_mot_thi_khong_ket_luan(self):
         self.assertFalse(thongke.du_tin_de_ket_luan(1.000, 1.05))

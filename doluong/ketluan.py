@@ -45,10 +45,22 @@ def phan_tich(ket_qua, tinh_trang_may, hat_giong=None):
         n = min(len(goc), len(khac))
         ty_le, duoi, tren = thongke.khoang_tin_cay_hieu(
             goc.thoi_gian[:n], khac.thoi_gian[:n], hat_giong=hat_giong)
+        du_tin = thongke.du_tin_de_ket_luan(duoi, tren)
+
+        # Khong ket luan duoi nguong phan giai cua chinh may nay.
+        #
+        # Khoang tin cay chi noi ve dam mau da thu duoc, khong biet gi
+        # ve viec may dang troi. May troi 48% ma bao "cham hon 1.9%"
+        # la ket luan nam duoi muc may co the phan biet - phai tu choi.
+        if du_tin and tinh_trang_may.da_kiem:
+            lech = abs(ty_le - 1)
+            if lech < tinh_trang_may.phan_giai:
+                du_tin = False
+
         so_sanh.append(SoSanh(
             goc=goc, khac=khac, ty_le=ty_le,
             can_duoi=duoi, can_tren=tren,
-            ket_luan_duoc=thongke.du_tin_de_ket_luan(duoi, tren),
+            ket_luan_duoc=du_tin,
         ))
     return BaoCao(ket_qua, tinh_trang_may, so_sanh)
 

@@ -150,6 +150,7 @@ def chay(doi_so=None):
         hat_giong=tham_so.hat_giong,
         xao_thu_tu=not tham_so.khong_xao,
         bao_tien_do=tien_do,
+        phan_giai_may=tinh_trang.phan_giai,
     )
     if hien_tien_do:
         print("\r" + " " * 40 + "\r", end="", file=sys.stderr)
