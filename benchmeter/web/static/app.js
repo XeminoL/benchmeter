@@ -367,6 +367,7 @@ function renderScatter(series) {
 }
 
 function renderResults(data) {
+  lastReport = data;
   renderRows(data.series);
   el("run-caption").textContent =
     "Run one after the other, in random order";
@@ -382,6 +383,65 @@ function renderResults(data) {
   }
   el("results").hidden = false;
   renderMachine(data.machine);
+}
+
+let lastReport = null;
+
+function asPlainText(data) {
+  const lines = [];
+  lines.push("benchmeter");
+  lines.push("");
+  lines.push(`Rounds: ${data.rounds}` +
+    (data.stoppedEarly ? " (stopped once clear)" : ""));
+  lines.push(`Machine: ${data.machine.grade}, ` +
+    `drift ${plain(data.machine.drift * 100)}, ` +
+    `detects from ${plain(data.machine.resolution * 100)}`);
+  lines.push("");
+  const width = Math.max(...data.series.map((s) => s.label.length), 7);
+  lines.push("Command".padEnd(width) + "   Typical      Spread   Runs");
+  for (const item of data.series) {
+    lines.push(
+      item.label.padEnd(width) +
+      item.medianText.padStart(10) +
+      `+/-${plain(item.spread * 100)}`.padStart(12) +
+      String(item.samples).padStart(7)
+    );
+  }
+  lines.push("");
+  for (const c of data.comparisons) {
+    if (c.conclusive) {
+      lines.push(`${c.variant} is ${plain(Math.abs(c.percent))} ` +
+        `${c.faster ? "faster" : "slower"} than ${c.baseline}`);
+    } else {
+      lines.push(`${c.variant} vs ${c.baseline}: no difference ` +
+        `established (${plain(Math.abs(c.percent))} apart)`);
+    }
+    lines.push(`  95% interval ${percent(c.lowerPercent)} to ` +
+      `${percent(c.upperPercent)}`);
+  }
+  return lines.join("\n");
+}
+
+async function copyReport() {
+  const status = el("copy-status");
+  if (!lastReport) return;
+  const text = asPlainText(lastReport);
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus(status, "copied");
+  } catch (error) {
+    const box = document.createElement("textarea");
+    box.value = text;
+    box.setAttribute("readonly", "");
+    box.style.position = "fixed";
+    box.style.opacity = "0";
+    document.body.appendChild(box);
+    box.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(box);
+    setStatus(status, ok ? "copied" : "could not copy", !ok);
+  }
+  setTimeout(() => setStatus(status, ""), 2500);
 }
 
 let activeRun = null;
@@ -457,6 +517,7 @@ async function runMeasurement() {
 el("check-machine").addEventListener("click", checkMachine);
 el("run").addEventListener("click", runMeasurement);
 el("cancel").addEventListener("click", cancelMeasurement);
+el("copy").addEventListener("click", copyReport);
 
 const INPUT_KEY = "benchmeter-inputs";
 const INPUT_FIELDS = ["command-a", "label-a", "command-b", "label-b",

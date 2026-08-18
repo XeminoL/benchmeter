@@ -355,6 +355,11 @@ caption {
   font-family: var(--mono-face);
 }
 
+.actions--after {
+  margin-top: 28px;
+  margin-bottom: 0;
+}
+
 .scatter-block {
   margin: 32px 0 0;
 }
@@ -671,9 +676,7 @@ caption {
     font-size: 14px;
   }
 }
-
-@media print {
-  .noscript {
+.noscript {
   max-width: 900px;
   margin: 0 auto;
   padding: 14px 28px;
@@ -682,8 +685,55 @@ caption {
   color: var(--warn);
 }
 
-.theme-toggle {
+@media print {
+  :root {
+    --page: #fff;
+    --card: #fff;
+    --line: #999;
+    --line-soft: #ccc;
+    --text: #000;
+    --text-soft: #333;
+    --text-faint: #555;
+    --accent: #000;
+    --warn: #000;
+  }
+
+  .theme-toggle,
+  .actions,
+  .noscript {
     display: none;
+  }
+
+  body {
+    font-size: 11pt;
+  }
+
+  .sheet {
+    max-width: none;
+    padding: 0;
+  }
+
+  input[type="text"],
+  input[type="number"] {
+    border: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .section {
+    margin-bottom: 22pt;
+    break-inside: avoid;
+  }
+
+  .verdict,
+  .scatter-block,
+  table {
+    break-inside: avoid;
+  }
+
+  .column-pair {
+    grid-template-columns: 1fr 190px;
+    gap: 18pt;
   }
 }
 
