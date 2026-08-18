@@ -62,6 +62,19 @@ Saved runs record the host state, so a comparison spanning two host states is re
 
 ![Dark theme](docs/screenshot-dark.png)
 
+## Experiments
+
+```
+python experiments/process_floor.py
+python experiments/floor_sensitivity.py
+python experiments/against_hyperfine.py <path-to-hyperfine>
+```
+
+The three measurements the report rests on: how much of a timed run is
+interpreter start-up, how the resolution floor behaves as its threshold is
+moved, and how the tool compares against hyperfine on two identical
+commands. Details in `experiments/README.md`.
+
 ## Tests
 
 ```
