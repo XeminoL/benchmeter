@@ -33,103 +33,81 @@
       </button>
       <span class="status" id="machine-status" role="status"
             aria-live="polite"></span>
+      <p class="reading" id="machine-advice"></p>
     </div>
-    <div class="column-pair">
-      <div>
-        <table class="figures" id="machine-table" hidden>
-          <tbody>
-            <tr>
-              <th scope="row">Condition</th>
-              <td id="machine-grade">—</td>
-            </tr>
-            <tr>
-              <th scope="row">Speed change while idle</th>
-              <td id="machine-drift">—</td>
-            </tr>
-            <tr>
-              <th scope="row">Spread between runs</th>
-              <td id="machine-variation">—</td>
-            </tr>
-            <tr>
-              <th scope="row">Run-to-run dependence</th>
-              <td id="machine-autocorr">—</td>
-            </tr>
-            <tr class="figures__key">
-              <th scope="row">Smallest difference it can detect</th>
-              <td id="machine-resolution">—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <aside class="margin-note margin-note--dropped">
-        <p class="margin-note__label">What this means</p>
-        <p id="machine-advice">Nothing measured yet.</p>
-      </aside>
-    </div>
+    <table class="figures" id="machine-table" hidden>
+      <tbody>
+        <tr>
+          <th scope="row">Condition</th>
+          <td id="machine-grade">—</td>
+        </tr>
+        <tr>
+          <th scope="row">Speed change while idle</th>
+          <td id="machine-drift">—</td>
+        </tr>
+        <tr>
+          <th scope="row">Spread between runs</th>
+          <td id="machine-variation">—</td>
+        </tr>
+        <tr>
+          <th scope="row">Run-to-run dependence</th>
+          <td id="machine-autocorr">—</td>
+        </tr>
+        <tr class="figures__key">
+          <th scope="row">Smallest difference it can detect</th>
+          <td id="machine-resolution">—</td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <section class="section">
     <div class="section__head">
       <h2 class="section__heading">Your commands</h2>
     </div>
-    <div class="column-pair">
-      <div>
-        <div class="field">
-          <label class="field__label" for="command-a">
-            <span class="field__tag">A</span>Baseline
-          </label>
-          <div class="field__row">
-            <input type="text" id="command-a" value="python -c pass"
-                   spellcheck="false" autocomplete="off">
-            <input type="text" id="label-a" value="baseline"
-                   spellcheck="false" autocomplete="off"
-                   aria-label="Name for the first command">
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="field__label" for="command-b">
-            <span class="field__tag">B</span>Variant
-          </label>
-          <div class="field__row">
-            <input type="text" id="command-b"
-                   value="python -c &quot;sum(range(400000))&quot;"
-                   spellcheck="false" autocomplete="off">
-            <input type="text" id="label-b" value="variant"
-                   spellcheck="false" autocomplete="off"
-                   aria-label="Name for the second command">
-          </div>
-          <span class="field__hint">
-            The second box in each pair is the name you want it called.
-          </span>
-        </div>
-
-        <div class="field">
-          <label class="field__label" for="budget">Time to spend</label>
-          <div class="field__row field__row--narrow">
-            <input type="number" id="budget" value="20" min="5" max="120"
-                   step="5">
-            <span class="field__unit">seconds at most</span>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button type="button" id="run">Run measurement</button>
-          <button type="button" id="cancel" class="secondary" hidden>
-            Cancel
-          </button>
-          <span class="status" id="run-status" role="status"
-                aria-live="polite"></span>
-        </div>
+    <div class="field">
+      <label class="field__label" for="command-a">
+        <span class="field__tag">A</span>Baseline
+      </label>
+      <div class="field__row">
+        <input type="text" id="command-a" value="python -c pass"
+               spellcheck="false" autocomplete="off">
+        <input type="text" id="label-a" value="baseline"
+               spellcheck="false" autocomplete="off"
+               aria-label="Name for the first command">
       </div>
-      <aside class="margin-note">
-        <p class="margin-note__label">How it runs them</p>
-        <ol class="procedure">
-          <li>A few practice rounds first, thrown away.</li>
-          <li>Then A and B one after the other, in random order.</li>
-          <li>Keeps going until the answer is clear, or your time is up.</li>
-        </ol>
-      </aside>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="command-b">
+        <span class="field__tag">B</span>Variant
+      </label>
+      <div class="field__row">
+        <input type="text" id="command-b"
+               value="python -c &quot;sum(range(400000))&quot;"
+               spellcheck="false" autocomplete="off">
+        <input type="text" id="label-b" value="variant"
+               spellcheck="false" autocomplete="off"
+               aria-label="Name for the second command">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="budget">Time to spend</label>
+      <div class="field__row field__row--narrow">
+        <input type="number" id="budget" value="20" min="5" max="120"
+               step="5">
+        <span class="field__unit">seconds at most</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="run">Run measurement</button>
+      <button type="button" id="cancel" class="secondary" hidden>
+        Cancel
+      </button>
+      <span class="status" id="run-status" role="status"
+            aria-live="polite"></span>
     </div>
   </section>
 
@@ -139,7 +117,6 @@
     </div>
 
     <table class="data">
-      <caption id="run-caption">Timings</caption>
       <thead>
         <tr>
           <th scope="col">Command</th>

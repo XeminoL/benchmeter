@@ -224,10 +224,10 @@ function renderVerdict(comparison, machine) {
 
   const label = document.createElement("p");
   label.className = "verdict__label";
-  label.textContent = comparison.conclusive
-    ? "Answer"
-    : "Too close to call";
-  box.appendChild(label);
+  if (!comparison.conclusive) {
+    label.textContent = "Too close to call";
+    box.appendChild(label);
+  }
 
   const detail = document.createElement("p");
   detail.className = "verdict__detail";
@@ -274,7 +274,7 @@ function renderScatter(series) {
   const padLeft = 62;
   const padRight = 16;
   const padTop = 14;
-  const padBottom = 30;
+  const padBottom = 14;
   const rounds = Math.max(...withData.map((s) => s.timings.length));
   const all = withData.flatMap((s) => s.timings);
   const sortedAll = [...all].sort((a, b) => a - b);
@@ -339,13 +339,6 @@ function renderScatter(series) {
     });
   });
 
-  const xLabel = svg("text", {
-    x: (padLeft + width - padRight) / 2, y: height - 6,
-    class: "axis-label", "text-anchor": "middle",
-  });
-  xLabel.textContent = `round 1 to ${rounds}`;
-  chart.appendChild(xLabel);
-
   host.appendChild(chart);
 
   const legend = document.createElement("div");
@@ -367,8 +360,6 @@ function renderScatter(series) {
 function renderResults(data) {
   lastReport = data;
   renderRows(data.series);
-  el("run-caption").textContent =
-    "Run one after the other, in random order";
   renderScatter(data.series);
 
   const verdicts = el("verdicts");
