@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>benchmeter</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231f2320'/%3E%3Cpath d='M3 11h10M3 5.5h6' stroke='%23f8f7f4' stroke-width='1.5'/%3E%3C/svg%3E">
+</head>
+<body>
+<button type="button" class="theme-toggle" id="theme-toggle">Dark</button>
+
+<noscript>
+  <p class="noscript">
+    This page needs JavaScript to run the measurements. Everything still
+    happens locally; nothing is sent anywhere.
+  </p>
+</noscript>
+
+<main class="sheet">
+
+  <header class="masthead">
+    <h1 class="masthead__title">benchmeter</h1>
+  </header>
+
+  <section class="section">
+    <div class="section__head">
+      <h2 class="section__heading">Your machine</h2>
+    </div>
+    <div class="actions">
+      <button type="button" id="check-machine" class="secondary">
+        Measure
+      </button>
+      <span class="status" id="machine-status" role="status"
+            aria-live="polite"></span>
+      <p class="reading" id="machine-advice"></p>
+    </div>
+    <table class="figures" id="machine-table" hidden>
+      <tbody>
+        <tr>
+          <th scope="row">Condition</th>
+          <td id="machine-grade">—</td>
+        </tr>
+        <tr>
+          <th scope="row">Speed change while idle</th>
+          <td id="machine-drift">—</td>
+        </tr>
+        <tr>
+          <th scope="row">Spread between runs</th>
+          <td id="machine-variation">—</td>
+        </tr>
+        <tr>
+          <th scope="row">Run-to-run dependence</th>
+          <td id="machine-autocorr">—</td>
+        </tr>
+        <tr class="figures__key">
+          <th scope="row">Smallest difference it can detect</th>
+          <td id="machine-resolution">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <div class="section__head">
+      <h2 class="section__heading">Your commands</h2>
+    </div>
+    <div class="field">
+      <label class="field__label" for="command-a">
+        <span class="field__tag">A</span>Baseline (JavaScript)
+      </label>
+      <div class="field__row">
+        <input type="text" id="command-a"
+               value="let s=0; for(let i=0;i&lt;3000000;i++) s=(s*31+i)%1000003;"
+               spellcheck="false" autocomplete="off">
+        <input type="text" id="label-a" value="baseline"
+               spellcheck="false" autocomplete="off"
+               aria-label="Name for the first command">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="command-b">
+        <span class="field__tag">B</span>Variant (JavaScript)
+      </label>
+      <div class="field__row">
+        <input type="text" id="command-b"
+               value="let s=0; for(let i=0;i&lt;2100000;i++) s=(s*31+i)%1000003;"
+               spellcheck="false" autocomplete="off">
+        <input type="text" id="label-b" value="variant"
+               spellcheck="false" autocomplete="off"
+               aria-label="Name for the second command">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="budget">Time to spend</label>
+      <div class="field__row field__row--narrow">
+        <input type="number" id="budget" value="20" min="0.01" max="120"
+               step="1">
+        <span class="field__unit">seconds</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="run">Run measurement</button>
+      <button type="button" id="cancel" class="secondary" hidden>
+        Cancel
+      </button>
+      <span class="status" id="run-status" role="status"
+            aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section class="section" id="results" hidden>
+    <div class="section__head">
+      <h2 class="section__heading">Your results</h2>
+    </div>
+
+    <table class="data">
+      <thead>
+        <tr>
+          <th scope="col">Command</th>
+          <th scope="col">Typical</th>
+          <th scope="col">Spread</th>
+          <th scope="col">Fastest</th>
+          <th scope="col">Slowest</th>
+          <th scope="col">Runs</th>
+        </tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+
+    <div class="scatter-block">
+      <div id="scatter"></div>
+    </div>
+
+    <div id="verdicts"></div>
+
+    <div class="actions actions--after">
+      <button type="button" id="copy" class="secondary">
+        Copy as text
+      </button>
+      <span class="status" id="copy-status" role="status"
+            aria-live="polite"></span>
+    </div>
+  </section>
+
+</main>
+<script src="bridge.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
