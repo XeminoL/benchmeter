@@ -120,5 +120,3 @@ Every number here came from one Windows laptop. Yours will differ — `--self-pr
 A first-year physics lab, where a measurement without an uncertainty is not a result and you establish the resolution of the instrument before trusting a reading.
 
 Mytkowicz et al. surveyed 133 papers from ASPLOS, PACT, PLDI and CGO and found none that handled measurement bias properly.
-
-MIT licence.
