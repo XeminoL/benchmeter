@@ -90,12 +90,6 @@ python -m unittest discover tests
 - **Executes the commands it is given.** The server binds to loopback and rejects requests that did not originate from its own page. It is not a sandbox.
 - **Figures are properties of the host,** not of the tool.
 
-## Origin
-
-A first-year physics laboratory, where a measurement without an uncertainty
-is not a result and the resolution of the instrument is established before a
-reading is trusted.
-
 ## License
 
 MIT.
