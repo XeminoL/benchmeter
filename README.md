@@ -83,12 +83,6 @@ python -m unittest discover tests
 
 `test_false_positives.py` fixes the correct answer in advance: samples from one distribution must never be declared different, a twofold difference must never be missed.
 
-## Limitations
-
-- **Cannot quiet the host.** Core pinning, priority elevation and disabling the garbage collector were all tested. The first two require administrative rights; the third increased drift.
-- **Slower than instruction counting.** `cachegrind` has near-zero variance but ignores branch prediction and instruction-level parallelism.
-- **Executes the commands it is given.** The server binds to loopback and rejects requests that did not originate from its own page. It is not a sandbox.
-- **Figures are properties of the host,** not of the tool.
 
 ## License
 
