@@ -59,6 +59,7 @@ def run_measurement(payload: dict) -> dict:
             "drift": state.drift,
             "resolution": state.resolution,
             "variation": state.variation,
+            "autocorrelation": state.autocorrelation,
             "advice": state.advice,
         },
         "rounds": measurement.rounds,
@@ -72,6 +73,11 @@ def run_measurement(payload: dict) -> dict:
                                if series.timings else "-"),
                 "spread": (stats.coefficient_of_variation(series.timings)
                            if series.timings else 0),
+                "fastestText": (format_duration(min(series.timings))
+                                if series.timings else "-"),
+                "slowestText": (format_duration(max(series.timings))
+                                if series.timings else "-"),
+                "timings": series.timings,
                 "samples": len(series),
                 "failures": series.failures,
             }
