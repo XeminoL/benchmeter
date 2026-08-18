@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>benchmeter</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .page { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  .masthead { text-align: center; margin-bottom: 2rem; }
+  .masthead h1 { margin: 0 0 0.4rem; font-size: 1.6rem; letter-spacing: 0.01em; }
+  .masthead p { margin: 0; color: var(--muted); }
+  .pair { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 34rem) { .pair { grid-template-columns: 1fr; } }
+  .field label { display: block; margin-bottom: 0.35rem; font-size: 0.85rem;
+                 color: var(--muted); }
+  .field textarea { width: 100%; box-sizing: border-box; min-height: 7.5rem;
+                    font-family: var(--mono, ui-monospace, Consolas, monospace);
+                    font-size: 0.85rem; line-height: 1.5; padding: 0.6rem;
+                    border: 1px solid var(--line); border-radius: 2px;
+                    background: var(--surface); color: var(--ink); resize: vertical; }
+  .controls { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+              margin: 1.25rem 0 0; }
+  .controls label { font-size: 0.85rem; color: var(--muted); }
+  .controls input[type=number] { width: 5rem; padding: 0.35rem 0.5rem;
+              border: 1px solid var(--line); border-radius: 2px;
+              background: var(--surface); color: var(--ink); }
+  button { font: inherit; padding: 0.5rem 1.1rem; border: 1px solid var(--ink);
+           background: var(--ink); color: var(--bg); border-radius: 2px;
+           cursor: pointer; }
+  button:disabled { opacity: 0.45; cursor: default; }
+  button.secondary { background: transparent; color: var(--ink);
+                     border-color: var(--line); }
+  #status { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem;
+            min-height: 1.2rem; }
+  #result { margin-top: 1.5rem; }
+  #result:empty { display: none; }
+  .verdict { border-top: 2px solid var(--ink); padding-top: 0.9rem; }
+  .verdict .headline { font-size: 1.15rem; font-weight: 600; margin: 0 0 0.5rem; }
+  .verdict dl { display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 1.25rem;
+                margin: 0.75rem 0 0; font-size: 0.9rem; }
+  .verdict dt { color: var(--muted); }
+  .verdict dd { margin: 0; font-family: var(--mono, ui-monospace, Consolas, monospace); }
+  .reasons { margin: 0.9rem 0 0; padding-left: 1.1rem; font-size: 0.9rem;
+             color: var(--muted); }
+  .prose { margin-top: 3rem; font-size: 0.95rem; line-height: 1.65; }
+  .prose h2 { font-size: 1.05rem; margin: 2rem 0 0.6rem; }
+  .prose p { margin: 0 0 0.8rem; }
+  .prose code { font-size: 0.85em; }
+  .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line);
+            font-size: 0.85rem; color: var(--muted); }
+  .footer a { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="masthead">
+  <h1>benchmeter</h1>
+  <p>Which of two snippets is faster, or whether the difference is noise</p>
+  <p style="font-size:0.85rem;margin-top:0.5rem">
+    Both boxes start identical, so the honest answer is no conclusion.
+  </p>
+</div>
+
+<div class="pair">
+  <div class="field">
+    <label for="a">Baseline</label>
+    <textarea id="a" spellcheck="false">let s = 0;
+for (let i = 0; i < 3000000; i++) {
+  s = (s * 31 + i) % 1000003;
+}</textarea>
+  </div>
+  <div class="field">
+    <label for="b">Variant</label>
+    <textarea id="b" spellcheck="false">let s = 0;
+for (let i = 0; i < 3000000; i++) {
+  s = (s * 31 + i) % 1000003;
+}</textarea>
+  </div>
+</div>
+
+<div class="controls">
+  <label for="budget">Seconds</label>
+  <input id="budget" type="number" value="4" min="1" max="30" step="1">
+  <button id="run">Measure</button>
+  <button id="differ" class="secondary">Load a real difference</button>
+  <span id="status"></span>
+</div>
+
+<div id="result"></div>
+
+<div class="prose">
+  <h2>What this is doing</h2>
+  <p>
+    Both snippets run once per round, in a shuffled order, until the time
+    budget is spent. Measuring all of the baseline and then all of the variant
+    would let the browser warm up in between, and that drift would land on
+    whichever ran second.
+  </p>
+  <p>
+    Before the comparison, a fixed workload runs repeatedly to establish what
+    this browser can resolve. Since that workload never changes, the variation
+    observed in it belongs to the machine. A difference smaller than that floor
+    is not reported, however convincing the interval looks.
+  </p>
+  <p>
+    The statistics run here are the same code as the command-line tool: the
+    median, the median absolute deviation, a bootstrap over paired rounds, and
+    the resolution floor, executed in the browser through Pyodide. Timing comes
+    from <code>performance.now()</code>, so the numbers are this machine's.
+  </p>
+  <h2>Where it differs from the tool</h2>
+  <p>
+    A page cannot start a process, so this measures JavaScript in the browser
+    rather than commands on the host. The installable version times any command
+    and reaches a resolution the browser clock cannot.
+  </p>
+</div>
+
+<div class="footer">
+  <a href="https://github.com/XeminoL/benchmeter">Source and the installable tool</a>
+  &middot; MIT
+</div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
