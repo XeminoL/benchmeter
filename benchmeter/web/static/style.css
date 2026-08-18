@@ -476,17 +476,6 @@ caption {
   font-size: 11px;
 }
 
-.interval__chart .zero-line {
-  stroke: var(--text-soft);
-  stroke-dasharray: 3 3;
-}
-
-.interval__chart .zero-label {
-  fill: var(--text-soft);
-  font-family: var(--body-face);
-  font-size: 12px;
-}
-
 .interval__chart .band {
   stroke-width: 3;
 }

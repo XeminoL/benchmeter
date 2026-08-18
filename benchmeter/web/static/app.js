@@ -102,7 +102,7 @@ function intervalBar(comparison) {
   const step = niceStep(span);
 
   const width = 640;
-  const height = 96;
+  const height = 78;
   const padX = 28;
   const axisY = 62;
   const plotWidth = width - padX * 2;
@@ -140,17 +140,7 @@ function intervalBar(comparison) {
     x1: padX, y1: axisY, x2: width - padX, y2: axisY, class: "axis",
   }));
 
-  const zeroX = toX(0);
-  chart.appendChild(svg("line", {
-    x1: zeroX, y1: 14, x2: zeroX, y2: axisY, class: "zero-line",
-  }));
-  const zeroLabel = svg("text", {
-    x: zeroX, y: 10, class: "zero-label", "text-anchor": "middle",
-  });
-  zeroLabel.textContent = "no difference";
-  chart.appendChild(zeroLabel);
-
-  const barY = 34;
+  const barY = 22;
   const left = toX(comparison.lowerPercent);
   const right = toX(comparison.upperPercent);
   const cls = comparison.conclusive ? "band band--clear" : "band band--crossing";
@@ -177,18 +167,10 @@ function intervalBar(comparison) {
 
   const caption = document.createElement("figcaption");
   caption.className = "interval__caption";
-  const spansZero =
-    comparison.lowerPercent <= 0 && comparison.upperPercent >= 0;
-  let tail = ".";
-  if (!comparison.conclusive) {
-    tail = spansZero
-      ? ", which crosses zero, so it might be nothing at all."
-      : ", but that is smaller than this machine can reliably detect.";
-  }
   caption.textContent =
     `Best guess ${percent(comparison.percent)}. The real answer is ` +
     `somewhere between ${percent(comparison.lowerPercent)} and ` +
-    `${percent(comparison.upperPercent)}` + tail;
+    `${percent(comparison.upperPercent)}.`;
 
   figure.append(chart, caption);
   return figure;
@@ -243,8 +225,7 @@ function renderVerdict(comparison, machine) {
   } else {
     detail.textContent =
       `${comparison.variant} and ${comparison.baseline} came out ` +
-      `${plain(Math.abs(comparison.percent))} apart, which is not enough ` +
-      `to call on this machine.`;
+      `${plain(Math.abs(comparison.percent))} apart.`;
   }
   box.appendChild(detail);
   box.appendChild(intervalBar(comparison));
