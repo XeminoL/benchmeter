@@ -1,24 +1,20 @@
-Tells you whether one command is really faster than another, or whether the difference is just noise.
+Determines whether one command is faster than another, or whether the difference is indistinguishable from measurement noise.
 
-Most of the time it is noise. Take a command, compare it against an exact copy of itself, and measure the usual way: all of A, then all of B, means compared with the standard error. On an ordinary laptop that will tell you the two are different most of the time. Same command, same machine.
+Compare a command against an exact copy of itself by the conventional method, all repetitions of A followed by all repetitions of B with means compared using the standard error, and the two come back different most of the time. The cause is drift: host throughput changes during the measurement, and a sequential design charges all of it to whichever variant ran second.
 
-Interleaving the two brings that down to almost nothing. And when the data still won't support an answer, this tells you so instead of picking a number anyway.
+Interleaving the variants within each round removes that. Where the data still does not support a conclusion, none is reported.
 
 ![The interface after a run](docs/screenshot-light.png)
-
-Type two commands, press the button. Runs on your own machine, nothing is uploaded.
 
 ```
 python -m benchmeter.cli --web
 ```
 
-Or double-click `launchers/benchmeter.cmd` on Windows, `launchers/benchmeter.sh` elsewhere. Python 3.9+, no dependencies.
+Or `launchers/benchmeter.cmd` on Windows, `launchers/benchmeter.sh` elsewhere. Python 3.9+, no dependencies. Runs locally; nothing leaves the host.
 
-## The two answers
+## Output
 
-Either one command is faster and you get the difference with an interval around it, or the evidence doesn't reach that far and you get told what is in the way: the machine is too unsettled, or there wasn't time for enough rounds.
-
-Most tools only have the first answer. They print a number whatever the data looks like and leave you to act on it.
+Two outcomes. A difference, reported as an effect size with a confidence interval. Or no conclusion, with the reason: the host is drifting beyond the resolution of the measurement, or the time budget allowed too few rounds.
 
 ![Two identical commands, correctly declared indistinguishable](docs/screenshot-inconclusive.png)
 
@@ -26,37 +22,37 @@ Most tools only have the first answer. They print a number whatever the data loo
 
 ![Module structure](docs/architecture.svg)
 
-## How it works
+## Method
 
-**Interleaved rounds.** Each round runs both commands once, in shuffled order. Measure all of A and then all of B, and the machine warms up in between. That drift lands on B, and B gets blamed for it. Interleaving makes both share it.
+**Interleaved rounds.** Each round executes every variant once, in shuffled order. Under a sequential design, drift between the two collection windows appears in the estimate as a difference between variants. Under interleaving it appears as variance shared by both.
 
-**The median.** Timing distributions are right-skewed: a process can be delayed indefinitely but cannot finish faster than its instructions allow. The mean follows the long tail, the median doesn't.
+**Median and MAD.** Timing distributions are right-skewed: a process can be delayed arbitrarily but cannot finish faster than its instruction stream permits. The mean tracks the tail.
 
-**Bootstrap over pairs.** Round *i* of A and round *i* of B ran seconds apart under the same conditions. Resampling whole rounds keeps that pairing instead of mixing the two series.
+**Paired bootstrap.** Round *i* of A and round *i* of B execute seconds apart under the same conditions. Resampling whole rounds preserves that pairing.
 
-**A noise floor.** A confidence interval describes the samples you collected and knows nothing about the machine drifting underneath them. I found this out the hard way: my own tool told me two identical commands were different, on a machine that was drifting far more than the difference it had just reported. The interval looked perfectly respectable. So the host gets profiled separately now, and a difference has to clear that resolution too.
+**Resolution floor.** A confidence interval describes the collected samples and carries no information about the stability of the host. An early version of mine reported a difference between two identical commands on a drifting machine, and the interval was narrow. The host is now profiled independently and a difference must clear its measured resolution as well.
 
-The interleaving scheme is called RMIT in the literature and I did not invent it. What I added is the packaging and the second gate.
+The interleaving design is established in the literature under the name RMIT. What is added here is the packaging and the second gate.
 
-## Prove it yourself
+## Validation
 
 ```
 python -m benchmeter.cli --self-proof
 ```
 
-Times one task, splits the samples in half, then compares the halves against each other. Both halves came from the same task, so every "significant difference" it finds is a false positive, and it counts them. You get the sequential rate and the interleaved rate side by side.
+Times one task, partitions the samples, and compares partitions drawn from the same task. Every significant difference is a false positive by construction, and both procedures are scored on the same collected samples.
 
-It runs the same experiment in C too, because the first thing anyone says is "that's just the garbage collector". Source in `native/verify.c`. I walked into three compiler traps writing it, each of which silently timed nothing at all; they're in `native/README.md`.
+Replicated in C to exclude the garbage collector and the interpreter loop as causes. Source in `native/verify.c`; the three compiler traps I hit writing it, each of which silently reduces the measurement to zero, are documented in `native/README.md`.
 
-## Check the machine
+## Host characterisation
 
 ```
 python -m benchmeter.cli --check-machine
 ```
 
-A fixed workload runs over and over. Since the workload never changes, every variation you see is the machine and not the code. Out of that comes a floor: below it, nothing can be established on this host however long you measure.
+Repeats a fixed workload. Since the workload does not change, observed variation originates in the host. The output includes a floor below which no difference is resolvable, however long the measurement runs.
 
-## Options
+## Usage
 
 ```bash
 python -m benchmeter.cli "a.py" "b.py" --label old --label new
@@ -67,9 +63,9 @@ python -m benchmeter.cli "a" "b" --seed 42        # reproducible
 python -m benchmeter.cli "a" "b" --save --note "before caching"
 ```
 
-Exit codes: `0` difference found, `1` error, `2` no conclusion. The `0`/`2` split matters in CI. A failure then means performance regressed, not that the runner was busy.
+Exit codes: `0` difference established, `1` error, `2` no conclusion. The `0`/`2` distinction matters in CI, where a failure should mean a regression and not a busy runner.
 
-Saved runs store the machine state too, so comparing across two different machine states says so rather than blaming the code.
+Saved runs record the host state, so a comparison spanning two different host states is reported as such.
 
 ![Dark theme](docs/screenshot-dark.png)
 
@@ -79,21 +75,21 @@ Saved runs store the machine state too, so comparing across two different machin
 python -m unittest discover tests
 ```
 
-The ones that matter are in `test_false_positives.py`, where the right answer is fixed before the test runs: samples from one distribution must never come back different, and a twofold difference must never be missed. Anything else counts as an error. A measurement tool that grades its own homework is not evidence of anything.
+`test_false_positives.py` fixes the correct answer before the run: samples from one distribution must never be declared different, a twofold difference must never be missed. Everything else is counted as an error.
 
-## What it won't do
+## Limitations
 
-It won't quiet your machine. I tried pinning to a core, raising priority, and turning off the garbage collector. Without admin rights Windows refuses the first two, and the third made things worse. So the tool profiles the machine instead and tells you what it found.
+Cannot quiet the host. I tried core pinning, priority elevation and disabling the garbage collector; the first two require administrative rights, the third increased drift. The tool characterises the host instead.
 
-It's slower than counting instructions. `cachegrind` has near-zero variance, but it ignores branch prediction and instruction-level parallelism. Different question.
+Slower than instruction counting. `cachegrind` has near-zero variance but ignores branch prediction and instruction-level parallelism. Different question.
 
-It runs what you give it. The server binds to loopback and rejects requests that didn't come from its own page, but it does execute the commands.
+Executes the commands it is given. The server binds to loopback and rejects requests that did not originate from its own page, but it is not a sandbox.
 
-Whatever it reports on my laptop, yours will be different. Run `--self-proof` and you get your own.
+Figures are properties of the host, not of the tool. `--self-proof` reproduces the experiment locally.
 
-## Where it came from
+## Origin
 
-A first-year physics lab, where a measurement without an uncertainty is not a result, and you check what your instrument can actually resolve before you trust a reading off it.
+A first-year physics laboratory, where a measurement without an uncertainty is not a result, and the resolution of the instrument is established before a reading is trusted.
 
 ## License
 
