@@ -17,7 +17,7 @@ function renderMachine(data) {
       ? "—"
       : (data.autocorrelation >= 0 ? "+" : "") +
         data.autocorrelation.toFixed(3));
-  el("machine-resolution").textContent = `${plain(data.resolution * 100)}`;
+  el("machine-resolution").textContent = plain(data.resolution * 100);
   el("machine-advice").textContent = data.advice;
   el("machine-table").hidden = false;
   el("instrument-state").textContent = data.grade;
@@ -27,13 +27,13 @@ async function checkMachine() {
   const button = el("check-machine");
   const status = el("machine-status");
   button.disabled = true;
-  setStatus(status, "measuring the machine…");
+  setStatus(status, "measuring…");
   try {
     const response = await fetch("/api/machine");
     renderMachine(await response.json());
     setStatus(status, "");
   } catch (error) {
-    setStatus(status, "could not reach the local server", true);
+    setStatus(status, "lost contact with the local server", true);
   } finally {
     button.disabled = false;
   }
@@ -167,12 +167,14 @@ function intervalBar(comparison) {
   const caption = document.createElement("figcaption");
   caption.className = "interval__caption";
   caption.textContent =
-    `Measured ${percent(comparison.percent)}, true value lies between ` +
-    `${percent(comparison.lowerPercent)} and ` +
-    `${percent(comparison.upperPercent)} with 95% confidence. ` +
+    `Best estimate ${percent(comparison.percent)}, and the true value is ` +
+    `almost certainly between ${percent(comparison.lowerPercent)} and ` +
+    `${percent(comparison.upperPercent)}. ` +
     (comparison.conclusive
-      ? "The interval clears the zero line, so the difference is real."
-      : "The interval crosses the zero line, so no difference is established.");
+      ? "The whole range sits on one side of zero, which is what makes " +
+        "this trustworthy."
+      : "The range straddles zero, meaning no difference at all is still " +
+        "a live possibility.");
 
   figure.append(chart, caption);
   return figure;
@@ -182,20 +184,21 @@ function nextSteps(comparison, machine) {
   const steps = [];
   if (machine.drift >= 0.15) {
     steps.push(
-      `The machine drifted ${plain(machine.drift * 100)} while idle. ` +
-      `Closing other applications will tighten this.`
+      `Your machine wandered by ${plain(machine.drift * 100)} while doing ` +
+      `nothing. Closing other apps would help.`
     );
   }
   if (comparison.belowResolution) {
     steps.push(
-      `This machine resolves ${plain(machine.resolution * 100)} and above; ` +
-      `the observed ${plain(Math.abs(comparison.percent))} sits underneath it.`
+      `This machine can only detect differences of ` +
+      `${plain(machine.resolution * 100)} or more, and ` +
+      `${plain(Math.abs(comparison.percent))} is below that.`
     );
   }
   if (Math.abs(comparison.percent) < 1) {
-    steps.push("The two are almost certainly the same speed.");
+    steps.push("For practical purposes these are the same speed.");
   } else {
-    steps.push("Raising the time allowed gives the interval room to narrow.");
+    steps.push("Giving it more time would narrow the range.");
   }
   return steps;
 }
@@ -207,21 +210,22 @@ function renderVerdict(comparison, machine) {
 
   const label = document.createElement("p");
   label.className = "verdict__label";
-  label.textContent = comparison.conclusive ? "Result" : "No conclusion";
+  label.textContent = comparison.conclusive
+    ? "Difference found"
+    : "Cannot tell";
   box.appendChild(label);
 
   const detail = document.createElement("p");
   detail.className = "verdict__detail";
   if (comparison.conclusive) {
     detail.textContent =
-      `${comparison.variant} is ` +
-      `${plain(Math.abs(comparison.percent))} ` +
-      `${comparison.faster ? "faster" : "slower"} than ${comparison.baseline}.`;
+      `${comparison.variant} is ${plain(Math.abs(comparison.percent))} ` +
+      `${comparison.faster ? "faster" : "slower"} than ` +
+      `${comparison.baseline}. This is a real difference.`;
   } else {
     detail.textContent =
-      `Observed ${plain(Math.abs(comparison.percent))} between ` +
-      `${comparison.baseline} and ${comparison.variant}, which is not ` +
-      `enough to rule out equal speed.`;
+      `The two came out ${plain(Math.abs(comparison.percent))} apart, ` +
+      `which is too close to call. They may well be the same speed.`;
   }
   box.appendChild(detail);
   box.appendChild(intervalBar(comparison));
@@ -253,16 +257,21 @@ function renderScatter(series) {
   const padBottom = 30;
   const rounds = Math.max(...withData.map((s) => s.timings.length));
   const all = withData.flatMap((s) => s.timings);
-  const low = Math.min(...all);
-  const high = Math.max(...all);
+  const sortedAll = [...all].sort((a, b) => a - b);
+  const low = sortedAll[0];
+  const cutoff = sortedAll[Math.floor(sortedAll.length * 0.97)];
+  const high = cutoff > low ? cutoff : sortedAll[sortedAll.length - 1];
   const range = high - low || 1;
+  const clipped = all.filter((v) => v > high).length;
 
   const toX = (index) =>
     padLeft + (index / Math.max(rounds - 1, 1)) *
     (width - padLeft - padRight);
-  const toY = (value) =>
-    height - padBottom -
-    ((value - low) / range) * (height - padTop - padBottom);
+  const toY = (value) => {
+    const capped = Math.min(value, high);
+    return height - padBottom -
+      ((capped - low) / range) * (height - padTop - padBottom);
+  };
 
   const chart = svg("svg", {
     viewBox: `0 0 ${width} ${height}`,
@@ -297,13 +306,16 @@ function renderScatter(series) {
       class: seriesIndex === 0 ? "median-a" : "median-b",
     }));
     item.timings.forEach((value, index) => {
-      chart.appendChild(
-        seriesIndex === 0
-          ? svg("circle", { cx: toX(index), cy: toY(value), r: 2,
-                            class: "dot-a" })
-          : svg("circle", { cx: toX(index), cy: toY(value), r: 2.6,
-                            class: "dot-b" })
-      );
+      const beyond = value > high;
+      const marker = seriesIndex === 0
+        ? svg("circle", { cx: toX(index), cy: toY(value), r: 2.4,
+                          class: "dot-a" })
+        : svg("circle", { cx: toX(index), cy: toY(value), r: 2.9,
+                          class: "dot-b" });
+      if (beyond) {
+        marker.setAttribute("class", `${marker.getAttribute("class")} beyond`);
+      }
+      chart.appendChild(marker);
     });
   });
 
@@ -330,18 +342,24 @@ function renderScatter(series) {
   legend.appendChild(dashed);
   host.appendChild(legend);
 
+  const clippedNote = clipped
+    ? ` ${clipped} run${clipped > 1 ? "s were" : " was"} slower than the ` +
+      `top of the chart and sit pinned to the upper edge.`
+    : "";
   el("scatter-caption").textContent =
-    "Scattered points with no trend mean a steady machine. A visible " +
-    "slope or steps mean it drifted while measuring.";
+    "If the points look evenly scattered, the machine held steady. A " +
+    "visible slope or sudden step means it changed speed partway through, " +
+    "which is exactly what alternating the two commands protects against." +
+    clippedNote;
 }
 
 function renderResults(data) {
   renderRows(data.series);
   el("run-caption").textContent =
-    `Timings over ${data.rounds} interleaved rounds` +
-    (data.stoppedEarly ? ", stopped early once clear" : "");
+    "Each command was run the same number of times, alternating between " +
+    "them.";
   el("results-state").textContent =
-    data.conclusive ? "difference found" : "no conclusion";
+    `${data.rounds} rounds` + (data.stoppedEarly ? ", stopped early" : "");
   renderScatter(data.series);
 
   const verdicts = el("verdicts");
@@ -363,7 +381,7 @@ async function runMeasurement() {
   };
 
   button.disabled = true;
-  setStatus(status, "measuring, this takes about the time you allowed…");
+  setStatus(status, "running both commands, please wait…");
 
   try {
     const response = await fetch("/api/measure", {
@@ -379,7 +397,7 @@ async function runMeasurement() {
     renderResults(data);
     setStatus(status, "");
   } catch (error) {
-    setStatus(status, "could not reach the local server", true);
+    setStatus(status, "lost contact with the local server", true);
   } finally {
     button.disabled = false;
   }
@@ -387,19 +405,6 @@ async function runMeasurement() {
 
 el("check-machine").addEventListener("click", checkMachine);
 el("run").addEventListener("click", runMeasurement);
-
-function stamp() {
-  const now = new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  el("session-time").textContent =
-    `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ` +
-    `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  el("sheet-id").textContent =
-    `${pad(now.getMonth() + 1)}${pad(now.getDate())}-` +
-    `${pad(now.getHours())}${pad(now.getMinutes())}`;
-}
-
-stamp();
 
 const THEME_KEY = "benchmeter-theme";
 
@@ -413,7 +418,7 @@ function applyTheme(theme) {
   const dark = theme
     ? theme === "dark"
     : window.matchMedia("(prefers-color-scheme: dark)").matches;
-  el("theme-toggle").textContent = dark ? "light sheet" : "dark sheet";
+  el("theme-toggle").textContent = dark ? "Light" : "Dark";
 }
 
 function currentTheme() {

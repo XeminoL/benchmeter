@@ -3,49 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>benchmeter — timing worksheet</title>
+<title>benchmeter</title>
 <link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231f2320'/%3E%3Cpath d='M3 11h10M3 5.5h6' stroke='%23f8f7f4' stroke-width='1.5'/%3E%3C/svg%3E">
 </head>
 <body>
-<button type="button" class="theme-toggle" id="theme-toggle"
-        aria-label="Switch between light and dark sheet">
-  dark sheet
-</button>
+<button type="button" class="theme-toggle" id="theme-toggle">Dark</button>
+
 <main class="sheet">
 
   <header class="masthead">
-    <div class="masthead__stamp">
-      <span>SHEET</span>
-      <span id="sheet-id">—</span>
-    </div>
-    <div class="masthead__body">
-      <p class="masthead__course">Timing measurement · worksheet</p>
-      <h1 class="masthead__title">benchmeter</h1>
-      <p class="masthead__subtitle">
-        Compares how long two commands take. Reports a difference only
-        when the evidence supports one, and says so plainly when it
-        does not.
-      </p>
-    </div>
-    <dl class="masthead__meta">
-      <div><dt>method</dt><dd>interleaved A/B, shuffled</dd></div>
-      <div><dt>statistic</dt><dd>median, paired bootstrap</dd></div>
-      <div><dt>level</dt><dd>95% confidence</dd></div>
-      <div><dt>started</dt><dd id="session-time">—</dd></div>
-    </dl>
+    <h1 class="masthead__title">benchmeter</h1>
+    <p class="masthead__subtitle">
+      Tells you whether one command is really faster than another, or
+      whether you are looking at noise.
+    </p>
   </header>
 
-  <section class="section" id="section-instrument">
+  <section class="section">
     <div class="section__head">
-      <h2 class="section__heading" data-index="1">Instrument check</h2>
-      <span class="section__state" id="instrument-state">not measured</span>
+      <h2 class="section__heading">Check the machine</h2>
+      <span class="section__state" id="instrument-state">not measured yet</span>
     </div>
     <div class="column-pair">
-      <div class="column-pair__main">
-        <p>
-          Every measurement is bounded by the instrument taking it. Here
-          the instrument is the machine itself, so it is characterised
-          first, with a fixed task whose duration cannot vary.
+      <div>
+        <p class="lede">
+          Your laptop speeds up and slows down on its own, and that puts a
+          floor on how small a difference you can detect. Worth measuring
+          before you trust any result.
         </p>
         <div class="actions">
           <button type="button" id="check-machine" class="secondary">
@@ -58,37 +43,37 @@
             <tr>
               <th scope="row">Condition</th>
               <td id="machine-grade">—</td>
-              <td class="figures__note">quiet · unsettled · noisy</td>
+              <td class="figures__note">quiet, unsettled or noisy</td>
             </tr>
             <tr>
               <th scope="row">Drift while idle</th>
               <td id="machine-drift">—</td>
-              <td class="figures__note">fastest to slowest block</td>
+              <td class="figures__note">how much the speed wanders</td>
             </tr>
             <tr>
               <th scope="row">Sample variation</th>
               <td id="machine-variation">—</td>
-              <td class="figures__note">robust, outlier resistant</td>
+              <td class="figures__note">spread of individual runs</td>
             </tr>
             <tr>
               <th scope="row">Autocorrelation</th>
               <td id="machine-autocorr">—</td>
-              <td class="figures__note">0 means independent samples</td>
+              <td class="figures__note">near zero means runs are independent</td>
             </tr>
             <tr class="figures__key">
-              <th scope="row">Resolution floor</th>
+              <th scope="row">Smallest detectable</th>
               <td id="machine-resolution">—</td>
-              <td class="figures__note">smaller differences are invisible</td>
+              <td class="figures__note">anything below this is invisible here</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <aside class="margin-note" id="machine-note">
-        <p class="margin-note__label">Note</p>
+      <aside class="margin-note">
+        <p class="margin-note__label">Why this matters</p>
         <p id="machine-advice">
-          A ruler marked in millimetres cannot measure anything smaller
-          than a millimetre. The same limit applies here, and it is
-          worth knowing before chasing a one percent regression.
+          A ruler marked in millimetres cannot measure half a millimetre.
+          Same idea here: if your machine can only detect 3% differences,
+          chasing a 1% regression is wasted effort.
         </p>
       </aside>
     </div>
@@ -96,27 +81,26 @@
 
   <section class="section">
     <div class="section__head">
-      <h2 class="section__heading" data-index="2">Specimens</h2>
-      <span class="section__state" id="specimen-state">ready</span>
+      <h2 class="section__heading">Compare two commands</h2>
     </div>
     <div class="column-pair">
-      <div class="column-pair__main">
+      <div>
         <div class="field">
           <label class="field__label" for="command-a">
-            <span class="field__tag">A</span> Baseline command
+            <span class="field__tag">A</span>First command
           </label>
           <div class="field__row">
             <input type="text" id="command-a" value="python -c pass"
                    spellcheck="false" autocomplete="off">
             <input type="text" id="label-a" value="baseline"
                    spellcheck="false" autocomplete="off"
-                   aria-label="Display name for specimen A">
+                   aria-label="Name for the first command">
           </div>
         </div>
 
         <div class="field">
           <label class="field__label" for="command-b">
-            <span class="field__tag">B</span> Variant command
+            <span class="field__tag">B</span>Second command
           </label>
           <div class="field__row">
             <input type="text" id="command-b"
@@ -124,16 +108,21 @@
                    spellcheck="false" autocomplete="off">
             <input type="text" id="label-b" value="variant"
                    spellcheck="false" autocomplete="off"
-                   aria-label="Display name for specimen B">
+                   aria-label="Name for the second command">
           </div>
+          <span class="field__hint">
+            The box on the right is just the name shown in results.
+          </span>
         </div>
 
         <div class="field">
-          <label class="field__label" for="budget">Time allowed</label>
+          <label class="field__label" for="budget">How long to spend</label>
           <div class="field__row field__row--narrow">
             <input type="number" id="budget" value="20" min="5" max="120"
                    step="5">
-            <span class="field__unit">seconds</span>
+            <span class="field__unit">
+              seconds — stops early once the answer is clear
+            </span>
           </div>
         </div>
 
@@ -143,12 +132,13 @@
         </div>
       </div>
       <aside class="margin-note">
-        <p class="margin-note__label">Procedure</p>
+        <p class="margin-note__label">What happens when you press run</p>
         <ol class="procedure">
-          <li>Both commands run three times, discarded, to warm caches.</li>
-          <li>Each round runs A and B once, in random order.</li>
-          <li>Rounds repeat until the answer is clear or time runs out.</li>
-          <li>Paired rounds are resampled to build the interval.</li>
+          <li>Both commands run a few times and those runs are thrown
+              away, so neither gets blamed for a cold start.</li>
+          <li>Each round runs A once and B once, in random order.</li>
+          <li>Rounds keep going until the answer is clear or time runs
+              out.</li>
         </ol>
       </aside>
     </div>
@@ -156,7 +146,7 @@
 
   <section class="section" id="results" hidden>
     <div class="section__head">
-      <h2 class="section__heading" data-index="3">Observations</h2>
+      <h2 class="section__heading">Results</h2>
       <span class="section__state" id="results-state">—</span>
     </div>
 
@@ -164,19 +154,19 @@
       <caption id="run-caption">Timings</caption>
       <thead>
         <tr>
-          <th scope="col">Specimen</th>
-          <th scope="col">Median</th>
+          <th scope="col">Command</th>
+          <th scope="col">Typical</th>
           <th scope="col">Spread</th>
           <th scope="col">Fastest</th>
           <th scope="col">Slowest</th>
-          <th scope="col">n</th>
+          <th scope="col">Runs</th>
         </tr>
       </thead>
       <tbody id="results-body"></tbody>
     </table>
 
     <div class="scatter-block">
-      <p class="scatter-block__label">Raw samples, in the order measured</p>
+      <p class="scatter-block__label">Every run, in the order measured</p>
       <div id="scatter"></div>
       <p class="scatter-block__caption" id="scatter-caption"></p>
     </div>
@@ -186,9 +176,9 @@
 
   <footer class="footnote">
     <p>
-      Runs entirely on this machine; nothing is transmitted. The
-      interleaving scheme follows randomised multiple interleaved
-      trials as described in the performance-evaluation literature.
+      Everything runs on this machine and nothing is sent anywhere. The
+      alternating method is known as randomised multiple interleaved
+      trials in the performance measurement literature.
     </p>
   </footer>
 
