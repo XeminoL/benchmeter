@@ -1,0 +1,16 @@
+[project]
+name = "doluong"
+version = "0.1.0"
+description = "Do hieu nang va biet khi nao khong du tin de ket luan"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+doluong = "doluong.giaodien:chay"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["doluong"]
