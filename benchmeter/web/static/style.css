@@ -70,6 +70,7 @@ body {
 
 .masthead {
   margin-bottom: 40px;
+  text-align: center;
 }
 
 .masthead__title {
@@ -400,13 +401,6 @@ caption {
   margin-top: 36px;
 }
 
-.verdict__label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-soft);
-  margin: 0 0 6px;
-}
-
 .verdict__detail {
   font-size: 20px;
   line-height: 1.4;
@@ -423,7 +417,7 @@ caption {
 }
 
 .interval {
-  margin: 28px 0 0;
+  margin: 24px 0 0;
   padding: 0;
 }
 
@@ -481,7 +475,7 @@ caption {
 .interval__caption {
   font-size: 15px;
   color: var(--text-soft);
-  margin: 16px 0 0;
+  margin: 28px 0 0;
   max-width: none;
 }
 

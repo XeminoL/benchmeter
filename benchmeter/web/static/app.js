@@ -102,9 +102,9 @@ function intervalBar(comparison) {
   const step = niceStep(span);
 
   const width = 640;
-  const height = 78;
+  const height = 96;
   const padX = 28;
-  const axisY = 62;
+  const axisY = 70;
   const plotWidth = width - padX * 2;
 
   const toX = (value) => padX + ((value + span) / (2 * span)) * plotWidth;
@@ -140,7 +140,7 @@ function intervalBar(comparison) {
     x1: padX, y1: axisY, x2: width - padX, y2: axisY, class: "axis",
   }));
 
-  const barY = 22;
+  const barY = 26;
   const left = toX(comparison.lowerPercent);
   const right = toX(comparison.upperPercent);
   const cls = comparison.conclusive ? "band band--clear" : "band band--crossing";
@@ -168,8 +168,8 @@ function intervalBar(comparison) {
   const caption = document.createElement("figcaption");
   caption.className = "interval__caption";
   caption.textContent =
-    `Best guess ${percent(comparison.percent)}. The real answer is ` +
-    `somewhere between ${percent(comparison.lowerPercent)} and ` +
+    `Best guess ${percent(comparison.percent)}, somewhere between ` +
+    `${percent(comparison.lowerPercent)} and ` +
     `${percent(comparison.upperPercent)}.`;
 
   figure.append(chart, caption);
@@ -203,12 +203,6 @@ function renderVerdict(comparison, machine) {
   box.className =
     `verdict verdict--${comparison.conclusive ? "conclusive" : "inconclusive"}`;
 
-  const label = document.createElement("p");
-  label.className = "verdict__label";
-  if (!comparison.conclusive) {
-    label.textContent = "Too close to call";
-    box.appendChild(label);
-  }
 
   const detail = document.createElement("p");
   detail.className = "verdict__detail";

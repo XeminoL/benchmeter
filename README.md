@@ -1,42 +1,42 @@
 # benchmeter
 
-Tells you whether one command is genuinely faster than another, or whether you are just looking at noise.
+Đo xem một câu lệnh có thật sự nhanh hơn câu lệnh khác, hay ta chỉ đang nhìn vào nhiễu.
 
-Most of the time it is noise. That is the whole reason this exists.
+Phần lớn các trường hợp là nhiễu. Đó chính là lý do công cụ này tồn tại.
 
-## The problem, from the helpdesk side
+## Câu chuyện quen thuộc
 
-Someone changes a script, runs it twice, and reports back: "the new one is 15% faster, we should ship it."
+Một người sửa đoạn mã, chạy thử hai lần, rồi báo lại: "bản mới nhanh hơn 15%, triển khai thôi."
 
-Then you run it yourself and get the opposite. Nobody is lying. The machine was just in a different mood.
+Ta chạy lại và nhận kết quả ngược. Không ai nói dối cả. Chỉ là cái máy lúc ấy đang ở một tâm trạng khác.
 
-I got tired of having that conversation, so I measured how often it happens. On a normal laptop, comparing a command **against an exact copy of itself**, the usual way of measuring says they are different **62% of the time**. Same command. Same machine. Two thirds of the answers are wrong.
+Tôi đã nghe câu chuyện đó quá nhiều lần, nên quyết định đo xem nó xảy ra thường xuyên đến đâu. Trên một chiếc laptop bình thường, đem một câu lệnh so với **bản sao y hệt của chính nó**, cách đo thông thường kết luận rằng chúng khác nhau trong **62% số lần thử**. Cùng một câu lệnh. Cùng một cái máy. Hai phần ba câu trả lời là sai.
 
-This tool gets that down to about 4%, and when it still cannot tell, it says so instead of picking a number.
+Công cụ này kéo con số đó xuống còn khoảng 4%. Và khi vẫn chưa đủ cơ sở để kết luận, nó nói thẳng ra điều đó thay vì bốc một con số cho có.
 
-## Try it in the browser
+## Mở bằng trình duyệt
 
-Double-click `launchers/benchmeter.cmd` on Windows, or `launchers/benchmeter.sh` on Mac and Linux. It opens a page on your own machine.
+Nhấn đúp vào `launchers/benchmeter.cmd` nếu dùng Windows, hoặc `launchers/benchmeter.sh` nếu dùng macOS và Linux. Một trang web mở ra ngay trên máy.
 
-Type in two commands, press the button, read the answer. No account, nothing leaves your laptop. If Python is missing it tells you where to get it.
+Gõ hai câu lệnh, bấm nút, đọc kết quả. Không cần tài khoản, không có gì rời khỏi máy. Nếu chưa có Python, nó chỉ luôn chỗ tải về.
 
-From a terminal, if you prefer:
+Ai quen dòng lệnh hơn:
 
 ```
 python -m benchmeter.cli --web
 ```
 
-The page checks your machine, runs your commands, and either gives you a number or tells you it cannot. Results can be copied as plain text or printed.
+Trang sẽ đo máy, chạy lệnh của ta, rồi đưa ra một con số hoặc nói rõ là không thể. Kết quả sao chép được thành văn bản thuần, in ra giấy cũng được.
 
-## Or from the terminal
+## Hoặc dùng thẳng dòng lệnh
 
 ```bash
-python -m benchmeter.cli "python old.py" "python new.py"
+python -m benchmeter.cli "python cu.py" "python moi.py"
 ```
 
-You get one of two answers.
+Chỉ có hai loại câu trả lời.
 
-When there is a real difference:
+Khi khác biệt là thật:
 
 ```
   variant is 12.4% faster than baseline
@@ -44,7 +44,7 @@ When there is a real difference:
   confidence: high
 ```
 
-When there is not:
+Khi không phải:
 
 ```
   NO CONCLUSION
@@ -57,9 +57,9 @@ When there is not:
     - About 180 more rounds would likely settle it.
 ```
 
-The second answer is the useful one. Other tools will hand you "3.1% faster" and let you act on it.
+Câu trả lời thứ hai mới là câu đáng giá. Những công cụ khác sẽ thả cho ta con số "nhanh hơn 3,1%" rồi để ta tự tin hành động theo nó.
 
-## Check the machine first
+## Biết giới hạn của cái thước
 
 ```
 python -m benchmeter.cli --check-machine
@@ -71,93 +71,93 @@ python -m benchmeter.cli --check-machine
   resolves from   : 2.6%
 ```
 
-That last line is your instrument's limit. On this machine, anything smaller than a 2.6% difference is below the noise floor and no amount of measuring will find it. Worth knowing before you spend an afternoon chasing a 1% regression.
+Dòng cuối là giới hạn của dụng cụ đo. Trên chiếc máy này, mọi khác biệt nhỏ hơn 2,6% đều nằm dưới sàn nhiễu, và đo bao nhiêu lần cũng không tìm ra được. Biết điều đó trước sẽ đỡ mất một buổi chiều đi truy một con số 1%.
 
-## Don't take my word for it
+## Đừng tin lời tôi
 
 ```
 python -m benchmeter.cli --self-proof
 ```
 
-This measures **one single task**, splits the samples in half, and compares the two halves against each other. They are the same task, so every "significant difference" it finds is a lie by definition. It counts them.
+Lệnh này đo **đúng một tác vụ duy nhất**, chia đôi số mẫu thu được, rồi đem hai nửa so với nhau. Chúng vốn là một, nên mọi kết luận "khác biệt có ý nghĩa" đều là lời nói dối, theo định nghĩa. Nó đếm số lời nói dối đó.
 
-Results from the laptop I wrote this on:
+Kết quả trên chiếc laptop tôi viết công cụ này:
 
 ```
                         Python       C
-machine drift            29.8%   106.8%
-measured one after       62.2%    40.7%
-measured alternately      4.1%     0.0%
+máy trôi                 29.8%   106.8%
+đo tuần tự → báo sai     62.2%    40.7%
+đo xen kẽ  → báo sai      4.1%     0.0%
 ```
 
-The C column exists because the obvious objection is "that's just Python's garbage collector." It is not. Same story in C.
+Cột C có mặt ở đây vì ai cũng sẽ nghĩ ngay: "chắc do bộ dọn rác của Python thôi." Không phải. Trong C câu chuyện y hệt.
 
-## Why it works
+## Vì sao nó hoạt động
 
-Not clever statistics. Just a better order of operations.
+Không nhờ thống kê tinh vi nào. Chỉ là đổi thứ tự làm việc.
 
-Everyone measures A a hundred times, then B a hundred times. In between, the machine warms up, or Windows decides to index something, or the CPU drops its clock speed because the laptop is on battery. All of that lands on B, and B gets blamed for it.
+Người ta thường đo A một trăm lần, rồi đo B một trăm lần. Trong khoảng giữa đó, máy nóng lên, Windows quyết định lập chỉ mục thứ gì đó, CPU hạ tần vì laptop đang chạy pin. Toàn bộ chênh lệch ấy đổ lên đầu B, và B bị quy tội.
 
-This runs them **alternately** — A, B, A, B — and shuffles the order each round. Whatever the machine is doing at any moment, both commands are sitting in it together.
+Công cụ này chạy **xen kẽ** — A, B, A, B — và xáo thứ tự mỗi vòng. Máy đang làm gì ở thời điểm nào thì cả hai câu lệnh cùng ngồi trong đó.
 
-Three smaller things on top:
+Ba điều nhỏ hơn xây thêm trên nền ấy:
 
-- Uses the median, so one unlucky run where antivirus woke up doesn't skew everything.
-- Keeps each A/B pair together when calculating the interval, because they ran seconds apart under the same conditions.
-- Refuses to report a difference smaller than what the machine can actually resolve, even if the statistics look convincing.
+- Dùng trung vị, nên một lần chạy bất hạnh đúng lúc phần mềm diệt virus thức giấc sẽ không kéo lệch mọi thứ.
+- Giữ nguyên từng cặp A/B khi tính khoảng tin cậy, bởi chúng chạy cách nhau vài giây dưới cùng một điều kiện.
+- Từ chối báo một khác biệt nhỏ hơn mức máy thật sự phân biệt được, kể cả khi phép thống kê nghe rất thuyết phục.
 
-## Everything else it does
+## Những gì nó còn làm
 
 ```bash
-# name the things so the output reads properly
-python -m benchmeter.cli "python a.py" "python b.py" --label old --label new
+# đặt tên cho dễ đọc kết quả
+python -m benchmeter.cli "python a.py" "python b.py" --label cu --label moi
 
-# more than two at once
+# so nhiều hơn hai
 python -m benchmeter.cli "a.py" "b.py" "c.py"
 
-# give it longer, for differences that are small but real
+# cho thêm thời gian, dành cho khác biệt nhỏ mà thật
 python -m benchmeter.cli "a" "b" -t 60
 
-# for scripts and CI
+# dùng trong kịch bản và CI
 python -m benchmeter.cli "a" "b" --json
 
-# same seed, same run, useful when someone disputes your numbers
+# cùng hạt giống, cùng kết quả, hữu ích khi ai đó không tin số của ta
 python -m benchmeter.cli "a" "b" --seed 42
 
-# keep a record and compare against last time
-python -m benchmeter.cli "a" "b" --save --note "before caching"
+# ghi lại và so với lần trước
+python -m benchmeter.cli "a" "b" --save --note "truoc khi them cache"
 ```
 
-Exit codes: `0` there is a difference, `1` something broke, `2` cannot tell. The last one matters if you are gating a build on it — a fail should mean "this got slower", not "the runner was busy".
+Mã thoát: `0` có khác biệt, `1` có lỗi, `2` không kết luận được. Cái cuối quan trọng nếu ta dựng cổng chặn cho bản build — một lần thất bại phải nghĩa là "cái này chậm đi", không phải "máy chạy CI lúc đó đang bận".
 
-Saved runs store the machine conditions too. If you compare against last week and the machine was in a different state, it says so rather than blaming your code.
+Bản ghi lưu kèm cả tình trạng máy. Đem so với tuần trước mà máy đang ở trạng thái khác, nó sẽ nói ra, thay vì quy tội cho đoạn mã.
 
-## Things it won't do
+## Những gì nó không làm
 
-**It won't make your machine quiet.** I tried. Pinning to a CPU core, raising process priority, disabling garbage collection — all three either failed outright without admin rights or made no measurable difference. So it detects and reports instead of pretending.
+**Nó không làm máy ta yên tĩnh lại.** Tôi đã thử. Ghim tiến trình vào một nhân, nâng độ ưu tiên, tắt bộ dọn rác — cả ba đều hoặc thất bại thẳng vì không có quyền quản trị, hoặc chẳng thay đổi gì đo được. Nên nó chọn phát hiện và báo, thay vì hứa hẹn.
 
-**It's slower than counting instructions.** If you want a number that is identical every single time, `cachegrind` counts CPU instructions with essentially zero variance. It is also slow and it ignores things real hardware does, like branch prediction. Different tool for a different question.
+**Nó chậm hơn cách đếm lệnh.** Muốn một con số y hệt nhau mọi lần thì `cachegrind` đếm số lệnh CPU với phương sai gần như bằng không. Nhưng nó chậm, và nó bỏ qua những gì phần cứng thật sự làm, như dự đoán nhánh. Câu hỏi khác thì dùng dụng cụ khác.
 
-**The alternating trick isn't mine.** It's called RMIT in the research literature. What I did was package it so you can actually use it, and make it shut up when it doesn't know.
+**Cái mẹo xen kẽ không phải của tôi.** Trong tài liệu nghiên cứu nó có tên là RMIT. Việc tôi làm là đóng gói để dùng được, và dạy nó im lặng khi không biết.
 
-**One machine, one operating system.** Everything above was measured on a single Windows laptop. Your numbers will differ. Run `--self-proof` and find out.
+**Nó chạy bất cứ thứ gì ta gõ vào.** Máy chủ chỉ lắng nghe trên loopback và từ chối những yêu cầu không đến từ trang của chính nó, nhưng nó vẫn thực thi câu lệnh ta đưa. Đừng dán vào đó thứ mà ta không dám tự chạy.
 
-**It runs whatever you type.** The server only listens on loopback and rejects requests that did not come from its own page, but it does execute the commands you give it. Do not paste in something you would not run yourself.
+**Một cái máy, một hệ điều hành.** Mọi con số phía trên đo trên duy nhất một chiếc laptop Windows. Số của ta sẽ khác. Chạy `--self-proof` rồi biết.
 
-## Running the tests
+## Chạy kiểm thử
 
 ```
 python -m unittest discover tests
 ```
 
-31 tests. The important ones are in `test_false_positives.py`, which feeds it cases where the right answer is known in advance — samples from one source that must never be called different, and a doubling that must never be missed — then counts how often it gets them wrong.
+31 bài. Đáng chú ý nhất nằm trong `test_false_positives.py` — nó nạp vào những trường hợp đã biết trước đáp án: các mẫu sinh từ cùng một nguồn thì tuyệt đối không được gọi là khác nhau, và một khác biệt gấp đôi thì tuyệt đối không được bỏ sót. Rồi đếm số lần trả lời sai.
 
-A tool that grades its own homework isn't evidence.
+Một công cụ tự chấm bài mình thì không phải bằng chứng.
 
-## Where this came from
+## Nó đến từ đâu
 
-A first-year physics lab course. Every measurement had to carry an uncertainty; a number without one got marked down.
+Từ môn thí nghiệm vật lý đại cương. Mọi phép đo đều phải kèm sai số; một con số trần trụi thì bị trừ điểm.
 
-Then you get into software and watch people post benchmark numbers with no error bars at all, and nobody blinks.
+Rồi bước vào ngành phần mềm và thấy người ta công bố kết quả đo hiệu năng không kèm thanh sai số nào, mà chẳng ai thấy có vấn đề.
 
-Turns out this is known. Mytkowicz and colleagues went through 133 papers from four major systems conferences and could not find one that handled measurement bias properly. The physics undergrads are doing it more rigorously than the computer scientists.
+Hóa ra chuyện này đã được biết. Mytkowicz và cộng sự rà 133 bài báo từ bốn hội nghị hệ thống lớn và không tìm được bài nào xử lý độ chệch phép đo cho đúng. Sinh viên năm nhất ngành vật lý đang làm việc này chặt chẽ hơn các nhà khoa học máy tính.
