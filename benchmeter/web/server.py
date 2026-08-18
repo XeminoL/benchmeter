@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import secrets
 import threading
 import time
 import webbrowser
@@ -15,6 +16,8 @@ from .. import statistics_ as stats
 
 STATIC_DIR = Path(__file__).parent / "static"
 ASSET_VERSION = str(int(time.time()))
+SESSION_TOKEN = secrets.token_urlsafe(24)
+ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
 DEFAULT_PORT = 7801
 MAX_COMMANDS = 4
 MAX_BUDGET_SECONDS = 120
@@ -143,12 +146,33 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def request_is_local(self) -> bool:
+        """Reject anything that did not come from a page we served.
+
+        The server executes shell commands, so a page on any other site
+        must not be able to reach it. Browsers cannot forge Origin, and
+        they cannot read the token out of a cross-origin response, so
+        checking both closes the hole.
+        """
+        origin = self.headers.get("Origin")
+        if origin:
+            host = urlparse(origin).hostname
+            if host not in ALLOWED_HOSTS:
+                return False
+        host_header = (self.headers.get("Host") or "").rsplit(":", 1)[0]
+        if host_header and host_header not in ALLOWED_HOSTS:
+            return False
+        return self.headers.get("X-Benchmeter-Token") == SESSION_TOKEN
+
     def send_index(self) -> None:
         html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
         html = html.replace('href="style.css"',
                             f'href="style.css?v={ASSET_VERSION}"')
         html = html.replace('src="app.js"',
                             f'src="app.js?v={ASSET_VERSION}"')
+        token_tag = (f'<meta name="benchmeter-token" '
+                     f'content="{SESSION_TOKEN}">')
+        html = html.replace("</head>", token_tag + "\n</head>")
         body = html.encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", CONTENT_TYPES[".html"])
@@ -162,6 +186,10 @@ class Handler(BaseHTTPRequestHandler):
         if route == "/":
             self.send_index()
         elif route == "/api/machine":
+            if not self.request_is_local():
+                self.send_json({"error": "Rejected: request did not "
+                                         "originate from this page."}, 403)
+                return
             self.send_json(probe_machine())
         else:
             self.send_static(route.lstrip("/"))
@@ -169,6 +197,10 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if urlparse(self.path).path != "/api/measure":
             self.send_error(404)
+            return
+        if not self.request_is_local():
+            self.send_json({"error": "Rejected: request did not originate "
+                                     "from this page."}, 403)
             return
         length = int(self.headers.get("Content-Length", 0))
         try:

@@ -3,6 +3,19 @@ const plain = (value) => `${value.toFixed(1)}%`;
 
 const el = (id) => document.getElementById(id);
 
+const SESSION_TOKEN =
+  document.querySelector('meta[name="benchmeter-token"]')?.content || "";
+
+function request(url, options = {}) {
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      "X-Benchmeter-Token": SESSION_TOKEN,
+    },
+  });
+}
+
 function setStatus(node, message, isError = false) {
   node.textContent = message;
   node.classList.toggle("status--error", isError);
@@ -26,9 +39,9 @@ async function checkMachine() {
   const button = el("check-machine");
   const status = el("machine-status");
   button.disabled = true;
-  setStatus(status, "working…");
+  setStatus(status, "measuring…");
   try {
-    const response = await fetch("/api/machine");
+    const response = await request("/api/machine");
     renderMachine(await response.json());
     setStatus(status, "");
   } catch (error) {
@@ -214,15 +227,20 @@ function renderVerdict(comparison, machine) {
   const detail = document.createElement("p");
   detail.className = "verdict__detail";
   if (comparison.conclusive) {
-    detail.textContent =
-      `Your ${comparison.variant} is ` +
+    const amount = document.createElement("strong");
+    amount.textContent =
       `${plain(Math.abs(comparison.percent))} ` +
-      `${comparison.faster ? "faster" : "slower"} than ` +
-      `${comparison.baseline}.`;
+      `${comparison.faster ? "faster" : "slower"}`;
+    detail.append(
+      document.createTextNode(`${comparison.variant} is `),
+      amount,
+      document.createTextNode(` than ${comparison.baseline}.`)
+    );
   } else {
     detail.textContent =
-      `They came out ${plain(Math.abs(comparison.percent))} apart, which ` +
-      `is too close for your machine to call.`;
+      `${comparison.variant} and ${comparison.baseline} came out ` +
+      `${plain(Math.abs(comparison.percent))} apart. That is inside the ` +
+      `margin of error on this machine, so no difference is established.`;
   }
   box.appendChild(detail);
   box.appendChild(intervalBar(comparison));
@@ -366,8 +384,36 @@ function renderResults(data) {
   renderMachine(data.machine);
 }
 
+let activeRun = null;
+let elapsedTimer = null;
+
+function startElapsed(status, budget) {
+  let seconds = 0;
+  const tick = () => {
+    seconds += 1;
+    const cap = Math.round(budget);
+    setStatus(status, `measuring, ${seconds}s of up to ${cap}s`);
+  };
+  tick();
+  elapsedTimer = setInterval(tick, 1000);
+}
+
+function stopElapsed() {
+  if (elapsedTimer) {
+    clearInterval(elapsedTimer);
+    elapsedTimer = null;
+  }
+}
+
+function cancelMeasurement() {
+  if (activeRun) {
+    activeRun.abort();
+  }
+}
+
 async function runMeasurement() {
   const button = el("run");
+  const cancel = el("cancel");
   const status = el("run-status");
   const payload = {
     commands: [el("command-a").value, el("command-b").value],
@@ -375,14 +421,17 @@ async function runMeasurement() {
     budget: Number(el("budget").value),
   };
 
+  activeRun = new AbortController();
   button.disabled = true;
-  setStatus(status, "working…");
+  cancel.hidden = false;
+  startElapsed(status, payload.budget);
 
   try {
-    const response = await fetch("/api/measure", {
+    const response = await request("/api/measure", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      signal: activeRun.signal,
     });
     const data = await response.json();
     if (data.error) {
@@ -392,14 +441,59 @@ async function runMeasurement() {
     renderResults(data);
     setStatus(status, "");
   } catch (error) {
-    setStatus(status, "lost the local server", true);
+    if (error.name === "AbortError") {
+      setStatus(status, "cancelled");
+    } else {
+      setStatus(status, "lost the local server", true);
+    }
   } finally {
+    stopElapsed();
+    activeRun = null;
     button.disabled = false;
+    cancel.hidden = true;
   }
 }
 
 el("check-machine").addEventListener("click", checkMachine);
 el("run").addEventListener("click", runMeasurement);
+el("cancel").addEventListener("click", cancelMeasurement);
+
+const INPUT_KEY = "benchmeter-inputs";
+const INPUT_FIELDS = ["command-a", "label-a", "command-b", "label-b",
+                      "budget"];
+
+function saveInputs() {
+  const values = {};
+  for (const id of INPUT_FIELDS) {
+    values[id] = el(id).value;
+  }
+  try {
+    localStorage.setItem(INPUT_KEY, JSON.stringify(values));
+  } catch (error) {
+    return;
+  }
+}
+
+function restoreInputs() {
+  let stored;
+  try {
+    stored = JSON.parse(localStorage.getItem(INPUT_KEY) || "null");
+  } catch (error) {
+    return;
+  }
+  if (!stored) return;
+  for (const id of INPUT_FIELDS) {
+    if (typeof stored[id] === "string" && stored[id] !== "") {
+      el(id).value = stored[id];
+    }
+  }
+}
+
+for (const id of INPUT_FIELDS) {
+  el(id).addEventListener("change", saveInputs);
+}
+
+restoreInputs();
 
 const THEME_KEY = "benchmeter-theme";
 

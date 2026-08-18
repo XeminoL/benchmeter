@@ -10,6 +10,13 @@
 <body>
 <button type="button" class="theme-toggle" id="theme-toggle">Dark</button>
 
+<noscript>
+  <p class="noscript">
+    This page needs JavaScript to run the measurements. Everything still
+    happens locally; nothing is sent anywhere.
+  </p>
+</noscript>
+
 <main class="sheet">
 
   <header class="masthead">
@@ -24,7 +31,8 @@
       <button type="button" id="check-machine" class="secondary">
         Measure
       </button>
-      <span class="status" id="machine-status"></span>
+      <span class="status" id="machine-status" role="status"
+            aria-live="polite"></span>
     </div>
     <div class="column-pair">
       <div>
@@ -92,7 +100,7 @@
                    aria-label="Name for the second command">
           </div>
           <span class="field__hint">
-            The right-hand box is what you want it called.
+            The second box in each pair is the name you want it called.
           </span>
         </div>
 
@@ -107,7 +115,11 @@
 
         <div class="actions">
           <button type="button" id="run">Run measurement</button>
-          <span class="status" id="run-status"></span>
+          <button type="button" id="cancel" class="secondary" hidden>
+            Cancel
+          </button>
+          <span class="status" id="run-status" role="status"
+                aria-live="polite"></span>
         </div>
       </div>
       <aside class="margin-note">
