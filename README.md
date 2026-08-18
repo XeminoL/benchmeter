@@ -1,40 +1,38 @@
 # benchmeter
 
-Công cụ so sánh thời gian chạy của hai câu lệnh, có kèm đánh giá độ tin cậy của kết quả.
+Compares the running time of two commands and reports how much confidence the result deserves.
 
-## Vấn đề
+![benchmeter interface](docs/screenshot-light.png)
 
-Thời gian chạy của một chương trình không phải hằng số. Cùng một câu lệnh, cùng một máy, hai lần đo cho hai kết quả khác nhau: tần số CPU thay đổi theo nhiệt độ và nguồn điện, hệ điều hành chen tiến trình khác vào, bộ nhớ đệm nóng lên rồi nguội đi.
+## The problem
 
-Hệ quả là phần lớn khác biệt quan sát được giữa hai phiên bản mã nằm trong khoảng nhiễu của phép đo, chứ không phản ánh khác biệt thật.
+Execution time is not a constant. The same command on the same machine gives different answers on consecutive runs: CPU frequency responds to temperature and power source, the operating system schedules other work, caches warm and cool.
 
-Thử nghiệm trên một laptop thông thường: lấy một câu lệnh, so nó với bản sao y hệt của chính nó, dùng cách đo phổ biến (chạy hết A rồi chạy hết B, so trung bình bằng công thức sai số chuẩn chia căn N). Kết quả báo hai bên khác nhau trong **62% số lần thử**, dù chúng là một.
+The consequence is that most observed differences between two versions of a piece of code fall inside the measurement noise rather than reflecting a real change.
 
-Cách đo mà công cụ này dùng hạ tỉ lệ đó xuống khoảng **4%**, và không kết luận khi dữ liệu chưa đủ.
+A concrete measurement on an ordinary laptop: take one command, compare it against an exact copy of itself, and use the common approach — run all of A, then all of B, compare the means with the standard-error-over-root-N formula. The result declares the two different in **62% of trials**, although they are the same command.
 
-## Cài đặt và chạy
+The method used here brings that to roughly **4%**, and withholds a verdict when the data does not support one.
 
-Yêu cầu Python 3.9 trở lên, không cần thư viện ngoài.
+## Installation
 
-Giao diện web, chạy hoàn toàn trên máy cục bộ:
+Python 3.9 or later. No third-party dependencies.
 
 ```
 python -m benchmeter.cli --web
 ```
 
-Trên Windows có thể nhấn đúp `launchers/benchmeter.cmd`; trên macOS và Linux là `launchers/benchmeter.sh`. Hai tệp này tự tìm trình thông dịch phù hợp và chỉ dẫn nếu chưa có Python.
+On Windows, `launchers/benchmeter.cmd` can be double-clicked; on macOS and Linux, `launchers/benchmeter.sh`. Both locate a suitable interpreter and explain where to obtain Python if none is present.
 
-Dòng lệnh:
+From a terminal:
 
 ```bash
-python -m benchmeter.cli "python cu.py" "python moi.py"
+python -m benchmeter.cli "python old.py" "python new.py"
 ```
 
-## Kết quả
+## Output
 
-Có hai dạng đầu ra.
-
-Khi khoảng tin cậy nằm hẳn một phía của mốc không:
+Two forms. When the confidence interval sits entirely on one side of parity:
 
 ```
   variant is 12.4% faster than baseline
@@ -42,7 +40,7 @@ Khi khoảng tin cậy nằm hẳn một phía của mốc không:
   confidence: high
 ```
 
-Khi chưa loại trừ được khả năng hai bên bằng nhau:
+When equal performance has not been ruled out:
 
 ```
   NO CONCLUSION
@@ -55,9 +53,62 @@ Khi chưa loại trừ được khả năng hai bên bằng nhau:
     - About 180 more rounds would likely settle it.
 ```
 
-Trường hợp thứ hai là phần khác biệt chính so với các công cụ tương tự: thay vì trả về con số 3,1% để người dùng tự diễn giải, nó nêu rõ dữ liệu chưa đủ và cần làm gì tiếp.
+The second form is the main departure from comparable tools. Rather than returning 3.1% and leaving the interpretation to the reader, it states that the evidence is insufficient and what would change that.
 
-## Đo đặc tính máy
+![no conclusion](docs/screenshot-inconclusive.png)
+
+*Two identical copies of one command. The interval spans zero, so no difference is reported.*
+
+## Architecture
+
+![architecture](docs/architecture.svg)
+
+Two entry points share one measurement core. The browser interface is served by a local HTTP server that accepts requests only from the page it served itself, authenticated by a per-session token; the command line calls the same functions directly.
+
+| Module | Responsibility |
+|---|---|
+| `clock.py` | Times a single subprocess launch with `perf_counter_ns` |
+| `machine.py` | Repeats a fixed workload to derive drift, spread and noise floor |
+| `experiment.py` | Runs interleaved rounds under a wall-clock deadline |
+| `statistics_.py` | Median, MAD, paired bootstrap interval, drift, autocorrelation |
+| `report.py` | Applies both decision rules and phrases the verdict |
+| `history.py` | Stores results alongside the machine state at the time |
+| `selfproof.py` | Counts false positives by splitting one task in half |
+| `cli.py` | Argument handling and terminal output |
+| `web/server.py` | Static files, JSON endpoints, request authentication |
+
+## Method
+
+**Interleaved rounds.** Each round runs both commands once, in shuffled order. Sequential measurement places all of B's samples in a different time window from A's, so any drift between the two windows is attributed entirely to B. Interleaving distributes it across both.
+
+**Median rather than mean.** Outliers from operating-system interference do not move the estimate.
+
+**Paired bootstrap.** Round *i* of A and round *i* of B execute seconds apart under the same conditions. Resampling whole pairs preserves that relationship instead of mixing the two series.
+
+**A noise floor gate.** A confidence interval describes only the samples collected; it carries no information about the machine drifting underneath them. A difference must clear the machine's measured resolution as well as parity before it is reported.
+
+The multi-level interleaving scheme is known in the literature as randomised multiple interleaved trials (RMIT). What is added here is the packaging and the second decision rule.
+
+## Independent verification
+
+```
+python -m benchmeter.cli --self-proof
+```
+
+This times a single task, splits the samples into two halves in collection order, and compares the halves using both methods. Since both halves are the same task, every "significant difference" is a false positive and can be counted.
+
+Reference machine, Intel i7-1185G7, Windows, integrated graphics:
+
+```
+                          Python       C
+machine drift              29.8%   106.8%
+sequential → false pos.    62.2%    40.7%
+interleaved → false pos.    4.1%     0.0%
+```
+
+The C column exists to rule out the Python garbage collector and interpreter as the source. Source in `native/verify.c`; three compiler pitfalls encountered while writing it are documented in `native/README.md`.
+
+## Machine characterisation
 
 ```
 python -m benchmeter.cli --check-machine
@@ -69,89 +120,72 @@ python -m benchmeter.cli --check-machine
   resolves from   : 2.6%
 ```
 
-Công cụ chạy một tác vụ có khối lượng cố định nhiều lần. Vì tác vụ không đổi, mọi biến động quan sát được đều đến từ máy.
+A workload of fixed size runs repeatedly. Because the workload does not change, every variation observed originates in the machine.
 
-Dòng cuối là sàn phân giải: trên máy này, khác biệt nhỏ hơn 2,6% nằm dưới mức nhiễu và không xác định được, bất kể số lần đo.
+The last line is the resolution floor: on this machine differences below 2.6% lie under the noise and cannot be established regardless of sample count.
 
-## Kiểm chứng độc lập
-
-```
-python -m benchmeter.cli --self-proof
-```
-
-Lệnh này đo một tác vụ duy nhất, chia số mẫu thành hai nửa theo thứ tự thu được, rồi so hai nửa với nhau bằng cả hai phương pháp. Vì hai nửa cùng một tác vụ, mọi kết luận "khác biệt có ý nghĩa" đều là dương tính giả và đếm được.
-
-Số liệu trên máy tham chiếu (Intel i7-1185G7, Windows, không GPU rời):
-
-```
-                        Python       C
-biến động của máy        29.8%   106.8%
-đo tuần tự → sai         62.2%    40.7%
-đo xen kẽ  → sai          4.1%     0.0%
-```
-
-Cột C nhằm loại trừ giả thuyết nhiễu đến từ bộ dọn rác và lớp thông dịch của Python. Mã nguồn ở `native/verify.c`.
-
-## Phương pháp
-
-**Đo xen kẽ.** Mỗi vòng chạy cả hai câu lệnh một lần, thứ tự xáo ngẫu nhiên. Cách đo tuần tự đặt toàn bộ số mẫu của B vào một khoảng thời gian khác với A, nên mọi biến động của máy trong khoảng giữa được quy hết cho B. Đo xen kẽ phân bố biến động đều cho cả hai.
-
-**Trung vị thay trung bình.** Giá trị lạc do hệ điều hành chen ngang không kéo lệch kết quả.
-
-**Bootstrap theo cặp.** Lần chạy thứ *i* của A và thứ *i* của B diễn ra cách nhau vài giây dưới cùng điều kiện. Lấy mẫu lại theo cặp giữ nguyên quan hệ đó thay vì trộn lẫn hai chuỗi.
-
-**Chặn dưới theo sàn phân giải.** Khoảng tin cậy chỉ mô tả tập mẫu đã thu, không biết máy đang biến động. Công cụ yêu cầu khác biệt vượt sàn phân giải của máy mới kết luận.
-
-Cách đo xen kẽ nhiều tầng có tên trong tài liệu nghiên cứu là *randomised multiple interleaved trials* (RMIT).
-
-## Tuỳ chọn
+## Options
 
 ```bash
-# đặt tên hiển thị
-python -m benchmeter.cli "python a.py" "python b.py" --label cu --label moi
+# display names
+python -m benchmeter.cli "python a.py" "python b.py" --label old --label new
 
-# so nhiều hơn hai câu lệnh
+# more than two commands
 python -m benchmeter.cli "a.py" "b.py" "c.py"
 
-# giới hạn thời gian đo, tính bằng giây
+# time limit in seconds
 python -m benchmeter.cli "a" "b" -t 60
 
-# đầu ra JSON
+# JSON output
 python -m benchmeter.cli "a" "b" --json
 
-# cố định hạt giống để lặp lại đúng phép đo
+# fixed seed, for a reproducible run
 python -m benchmeter.cli "a" "b" --seed 42
 
-# lưu và so với lần đo trước
-python -m benchmeter.cli "a" "b" --save --note "truoc khi them cache"
+# record and compare against the previous run
+python -m benchmeter.cli "a" "b" --save --note "before caching"
 ```
 
-Mã thoát: `0` có khác biệt, `1` lỗi, `2` không kết luận được. Phân biệt `0` và `2` cần thiết khi dùng trong CI, để một lần thất bại nghĩa là hiệu năng giảm chứ không phải máy chạy CI đang tải cao.
+Exit codes: `0` a difference was found, `1` an error occurred, `2` no conclusion. Distinguishing `0` from `2` matters in continuous integration, so that a failure means performance regressed rather than the runner being busy.
 
-Bản ghi lưu kèm đặc tính máy tại thời điểm đo. Khi so với lần trước mà máy ở trạng thái khác, công cụ nêu rõ điều này.
+Saved records include the machine state at the time of measurement. When a comparison spans two different machine states, the tool says so.
 
-## Giới hạn
+![dark theme](docs/screenshot-dark.png)
 
-**Không giảm biến động của máy.** Đã thử ghim tiến trình vào một nhân CPU, nâng độ ưu tiên và tắt bộ dọn rác. Trên máy không có quyền quản trị, hai biện pháp đầu bị hệ điều hành từ chối, biện pháp thứ ba không làm biến động giảm. Công cụ chuyển sang phát hiện và báo.
-
-**Chậm hơn đếm lệnh CPU.** `cachegrind` đếm số lệnh với phương sai gần bằng không, nhưng chạy chậm và không phản ánh các đặc tính phần cứng như dự đoán nhánh hay thực thi song song. Hai công cụ trả lời hai câu hỏi khác nhau.
-
-**Thực thi câu lệnh người dùng nhập.** Máy chủ chỉ lắng nghe trên loopback và từ chối yêu cầu không phát sinh từ trang của chính nó, nhưng vẫn chạy câu lệnh nhận được.
-
-**Số liệu từ một máy.** Mọi con số trong tài liệu này đo trên một laptop Windows. Kết quả trên máy khác sẽ khác; `--self-proof` cho phép tự đo lại.
-
-**Chưa hỗ trợ đo phân tán trên nhiều máy.**
-
-## Kiểm thử
+## Tests
 
 ```
 python -m unittest discover tests
 ```
 
-31 bài kiểm thử. Phần chính nằm trong `test_false_positives.py`: nạp các trường hợp đã biết trước đáp án — mẫu sinh từ cùng một phân bố không được báo là khác nhau, khác biệt gấp đôi không được bỏ sót — rồi đếm tỉ lệ trả lời sai.
+31 tests. The substantive ones are in `test_false_positives.py`, which supplies cases with a known correct answer — samples drawn from one distribution must never be called different, a twofold difference must never be missed — and counts the error rate. A measurement tool that grades its own output is not evidence.
 
-## Nguồn gốc
+## Limitations
 
-Xuất phát từ nguyên tắc trong môn thí nghiệm vật lý đại cương: mọi kết quả đo phải kèm sai số, và phải biết giới hạn phân giải của dụng cụ trước khi tin vào số đo.
+**It does not reduce machine variation.** Pinning the process to one CPU core, raising scheduling priority and disabling garbage collection were all measured. Without administrator rights the first two are refused by the operating system and the third produced no reduction in drift. The tool detects and reports instead.
 
-Nguyên tắc này ít được áp dụng khi đo hiệu năng phần mềm. Mytkowicz và cộng sự khảo sát 133 bài báo từ ASPLOS, PACT, PLDI và CGO, không tìm thấy bài nào xử lý độ chệch phép đo một cách đầy đủ.
+**It is slower than instruction counting.** `cachegrind` counts CPU instructions with near-zero variance, but runs slowly and disregards hardware behaviour such as branch prediction and instruction-level parallelism. The two answer different questions.
+
+**It executes the commands it is given.** The server binds to loopback only and rejects requests that did not originate from its own page, but it does run what it receives.
+
+**Figures come from one machine.** Every number in this document was measured on a single Windows laptop. Results elsewhere will differ; `--self-proof` reproduces the experiment locally.
+
+**Distributed measurement across machines is not supported.**
+
+## Background
+
+The governing principle comes from an undergraduate physics laboratory course: a measurement is reported with its uncertainty, and the resolution of the instrument is established before the reading is trusted.
+
+The principle is applied unevenly in software performance work. Mytkowicz et al. surveyed 133 papers from ASPLOS, PACT, PLDI and CGO and found none that adequately accounted for measurement bias.
+
+## References
+
+1. Mytkowicz, T., Diwan, A., Hauswirth, M., Sweeney, P. F. *Producing Wrong Data Without Doing Anything Obviously Wrong!* ASPLOS 2009.
+2. Curtsinger, C., Berger, E. D. *STABILIZER: Statistically Sound Performance Evaluation.* ASPLOS 2013.
+3. Laaber, C., Würsten, S., Gall, H. C., Leitner, P. *Dynamically Reconfiguring Software Microbenchmarks: Reducing Execution Time without Sacrificing Result Quality.* ESEC/FSE 2020.
+4. Kalibera, T., Jones, R. *Rigorous Benchmarking in Reasonable Time.* ISMM 2013.
+5. Efron, B., Tibshirani, R. J. *An Introduction to the Bootstrap.* Chapman & Hall, 1993.
+
+## Licence
+
+MIT.
