@@ -37,17 +37,17 @@ class MachineState:
     @property
     def advice(self) -> str:
         if not self.measured:
-            return "Not measured yet."
+            return "Nothing measured yet."
         if self.grade == "quiet":
-            return "Steady. Anything above the noise floor is trustworthy."
+            return "Your machine is steady, so results should hold up."
         if self.grade == "unsettled":
             return (
-                "Some drift. Fine for larger differences, but small ones "
-                "will get lost in the noise."
+                "Your machine wobbles a little. Big differences are fine, "
+                "small ones may get lost."
             )
         return (
-            "Heavy drift. Close what else is running and use mains power, "
-            "then measure again. Until then only large differences count."
+            "Your machine is busy. Close what you can, plug in power, and "
+            "measure again. Until then, trust only large differences."
         )
 
 

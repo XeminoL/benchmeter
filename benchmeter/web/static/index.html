@@ -21,14 +21,13 @@
 
   <section class="section">
     <div class="section__head">
-      <h2 class="section__heading">Machine</h2>
-      <span class="section__state" id="instrument-state"></span>
+      <h2 class="section__heading">Your machine</h2>
     </div>
     <div class="column-pair">
       <div>
         <p class="lede">
-          Runs a fixed workload to find this machine's noise floor.
-          Anything smaller than that cannot be measured here.
+          Your machine changes speed on its own. Measure it first to see
+          how small a difference it can still detect.
         </p>
         <div class="actions">
           <button type="button" id="check-machine" class="secondary">
@@ -41,41 +40,36 @@
             <tr>
               <th scope="row">Condition</th>
               <td id="machine-grade">—</td>
-              <td class="figures__note"></td>
             </tr>
             <tr>
-              <th scope="row">Drift</th>
+              <th scope="row">Speed change while idle</th>
               <td id="machine-drift">—</td>
-              <td class="figures__note">speed change during the run</td>
             </tr>
             <tr>
-              <th scope="row">Variation</th>
+              <th scope="row">Spread between runs</th>
               <td id="machine-variation">—</td>
-              <td class="figures__note">run-to-run spread</td>
             </tr>
             <tr>
-              <th scope="row">Autocorrelation</th>
+              <th scope="row">Run-to-run dependence</th>
               <td id="machine-autocorr">—</td>
-              <td class="figures__note">0 if runs are independent</td>
             </tr>
             <tr class="figures__key">
-              <th scope="row">Noise floor</th>
+              <th scope="row">Smallest difference it can detect</th>
               <td id="machine-resolution">—</td>
-              <td class="figures__note">smallest difference it can resolve</td>
             </tr>
           </tbody>
         </table>
       </div>
       <aside class="margin-note">
-        <p class="margin-note__label">Reading</p>
-        <p id="machine-advice">Not measured yet.</p>
+        <p class="margin-note__label">What this means</p>
+        <p id="machine-advice">Nothing measured yet.</p>
       </aside>
     </div>
   </section>
 
   <section class="section">
     <div class="section__head">
-      <h2 class="section__heading">Comparison</h2>
+      <h2 class="section__heading">Your commands</h2>
     </div>
     <div class="column-pair">
       <div>
@@ -105,12 +99,12 @@
                    aria-label="Name for the second command">
           </div>
           <span class="field__hint">
-            Right-hand field is the display label.
+            The right-hand box is what you want it called.
           </span>
         </div>
 
         <div class="field">
-          <label class="field__label" for="budget">Budget</label>
+          <label class="field__label" for="budget">Time to spend</label>
           <div class="field__row field__row--narrow">
             <input type="number" id="budget" value="20" min="5" max="120"
                    step="5">
@@ -124,12 +118,11 @@
         </div>
       </div>
       <aside class="margin-note">
-        <p class="margin-note__label">Procedure</p>
+        <p class="margin-note__label">How it runs them</p>
         <ol class="procedure">
-          <li>Three warmup rounds, discarded.</li>
-          <li>Each round runs A and B once, order shuffled.</li>
-          <li>Repeats until the result is clear or the budget runs out.</li>
-          <li>Interval from resampling the paired rounds.</li>
+          <li>A few practice rounds first, thrown away.</li>
+          <li>Then A and B one after the other, in random order.</li>
+          <li>Keeps going until the answer is clear, or your time is up.</li>
         </ol>
       </aside>
     </div>
@@ -137,7 +130,7 @@
 
   <section class="section" id="results" hidden>
     <div class="section__head">
-      <h2 class="section__heading">Results</h2>
+      <h2 class="section__heading">Your results</h2>
       <span class="section__state" id="results-state">—</span>
     </div>
 
@@ -146,18 +139,18 @@
       <thead>
         <tr>
           <th scope="col">Command</th>
-          <th scope="col">Median</th>
+          <th scope="col">Typical</th>
           <th scope="col">Spread</th>
           <th scope="col">Fastest</th>
           <th scope="col">Slowest</th>
-          <th scope="col">n</th>
+          <th scope="col">Runs</th>
         </tr>
       </thead>
       <tbody id="results-body"></tbody>
     </table>
 
     <div class="scatter-block">
-      <p class="scatter-block__label">Samples in measurement order</p>
+      <p class="scatter-block__label">Every run, in order</p>
       <div id="scatter"></div>
       <p class="scatter-block__caption" id="scatter-caption"></p>
     </div>
@@ -167,8 +160,8 @@
 
   <footer class="footnote">
     <p>
-      Runs locally and sends nothing. The interleaved scheme is known as
-      randomised multiple interleaved trials.
+      Everything happens on your own machine. Nothing is uploaded and
+      nothing is stored anywhere else.
     </p>
   </footer>
 
