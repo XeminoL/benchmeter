@@ -73,30 +73,11 @@ body {
 }
 
 .masthead__title {
-  display: flex;
-  align-items: center;
   font-family: var(--mono-face);
   font-size: 34px;
   font-weight: 500;
   letter-spacing: -0.03em;
   margin: 0;
-}
-
-.masthead__prompt {
-  color: var(--text-faint);
-  margin-right: 0.4ch;
-  font-weight: 400;
-}
-
-.masthead__caret {
-  width: 0.75ch;
-  height: 1.7rem;
-  margin-left: 0.4ch;
-  background: var(--accent);
-}
-
-.masthead__caret--off {
-  background: transparent;
 }
 
 .section {
@@ -654,10 +635,6 @@ caption {
 
   .masthead__title {
     font-size: 26px;
-  }
-
-  .masthead__caret {
-    height: 1.2rem;
   }
 
   .column-pair {
