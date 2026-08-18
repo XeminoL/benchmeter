@@ -6,29 +6,25 @@ Interleaving the variants within each round removes that. Where the data does no
 
 ![The interface after a run](docs/screenshot-light.png)
 
-```
-python -m benchmeter.cli --web
-```
+- `launchers/benchmeter.cmd` on Windows
+- `launchers/benchmeter.sh` on Mac, Linux
 
-Or `launchers/benchmeter.cmd` on Windows, `launchers/benchmeter.sh` elsewhere. Python 3.9+, no dependencies, loopback only.
+Update to Python 3.9+
 
 ![Two identical commands, correctly declared indistinguishable](docs/screenshot-inconclusive.png)
 
 ## Architecture
 
-![Module structure](docs/architecture.svg)
+![](docs/architecture.svg)
 
 ## Method
 
-**Interleaved rounds.** Every variant runs once per round, in shuffled order. Drift that a sequential design books as a difference between variants becomes variance shared by both.
+- **Interleaved rounds.** Every variant runs once per round, in shuffled order. Drift that a sequential design books as a difference between variants becomes variance shared by both.
+- **Median and MAD.** Timing distributions are right-skewed, so the mean tracks the tail.
+- **Paired bootstrap.** Round *i* of A and round *i* of B execute seconds apart. Resampling whole rounds preserves the pairing.
+- **Resolution floor.** An interval describes the samples and says nothing about the stability of the host. An early version of mine reported a narrow interval between two identical commands on a drifting machine. The host is profiled separately and a difference has to clear its measured resolution.
 
-**Median and MAD.** Timing distributions are right-skewed, so the mean tracks the tail.
-
-**Paired bootstrap.** Round *i* of A and round *i* of B execute seconds apart. Resampling whole rounds preserves the pairing.
-
-**Resolution floor.** An interval describes the samples and says nothing about the stability of the host. An early version of mine reported a narrow interval between two identical commands on a drifting machine. The host is profiled separately now and a difference has to clear its measured resolution.
-
-The interleaving design is known in the literature as RMIT. What is added here is the packaging and the second gate.
+Known in the literature as RMIT.
 
 ## Validation
 
@@ -36,17 +32,9 @@ The interleaving design is known in the literature as RMIT. What is added here i
 python -m benchmeter.cli --self-proof
 ```
 
-Times one task, partitions the samples, compares partitions drawn from it. Every significant difference is a false positive by construction, and both procedures are scored on the same samples.
+Times one task, partitions the samples, compares partitions drawn from it. Both procedures are scored on the same samples.
 
 Replicated in C to rule out the garbage collector and the interpreter loop. Source in `native/verify.c`; the three compiler traps I hit writing it, each of which silently reduces the measurement to zero, are in `native/README.md`.
-
-## Host characterisation
-
-```
-python -m benchmeter.cli --check-machine
-```
-
-Repeats a fixed workload and reports drift, spread, and the floor below which nothing is resolvable on that host.
 
 ## Usage
 
@@ -57,9 +45,18 @@ python -m benchmeter.cli "a" "b" -t 60
 python -m benchmeter.cli "a" "b" --json
 python -m benchmeter.cli "a" "b" --seed 42
 python -m benchmeter.cli "a" "b" --save --note "before caching"
+python -m benchmeter.cli --check-machine
 ```
 
-Exit codes: `0` difference established, `1` error, `2` no conclusion. The `0`/`2` split keeps a busy runner from reading as a regression in CI.
+`--check-machine` repeats a fixed workload and reports drift, spread, and the floor below which nothing is resolvable on that host.
+
+Exit codes:
+
+- `0` difference established
+- `1` error
+- `2` no conclusion
+
+The `0`/`2` split keeps a busy runner from reading as a regression in CI.
 
 Saved runs record the host state, so a comparison spanning two host states is reported as such.
 
@@ -75,13 +72,10 @@ python -m unittest discover tests
 
 ## Limitations
 
-Cannot quiet the host. I tried core pinning, priority elevation and disabling the garbage collector; the first two need administrative rights, the third increased drift.
-
-Slower than instruction counting. `cachegrind` has near-zero variance but ignores branch prediction and instruction-level parallelism. Different question.
-
-Executes the commands it is given. The server binds to loopback and rejects requests that did not originate from its own page, but it is not a sandbox.
-
-Figures are properties of the host. `--self-proof` reproduces the experiment locally.
+- **Cannot quiet the host.** I tried core pinning, priority elevation and disabling the garbage collector. The first two need administrative rights, the third increased drift.
+- **Slower than instruction counting.** `cachegrind` has near-zero variance but ignores branch prediction and instruction-level parallelism.
+- **Executes the commands it is given.** The server binds to loopback and rejects requests that did not originate from its own page. It is not a sandbox.
+- **Figures belong to the host,** not to the tool.
 
 ## Origin
 
