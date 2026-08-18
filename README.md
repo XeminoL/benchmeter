@@ -1,42 +1,40 @@
 # benchmeter
 
-Đo xem một câu lệnh có thật sự nhanh hơn câu lệnh khác, hay ta chỉ đang nhìn vào nhiễu.
+Công cụ so sánh thời gian chạy của hai câu lệnh, có kèm đánh giá độ tin cậy của kết quả.
 
-Phần lớn các trường hợp là nhiễu. Đó chính là lý do công cụ này tồn tại.
+## Vấn đề
 
-## Câu chuyện quen thuộc
+Thời gian chạy của một chương trình không phải hằng số. Cùng một câu lệnh, cùng một máy, hai lần đo cho hai kết quả khác nhau: tần số CPU thay đổi theo nhiệt độ và nguồn điện, hệ điều hành chen tiến trình khác vào, bộ nhớ đệm nóng lên rồi nguội đi.
 
-Một người sửa đoạn mã, chạy thử hai lần, rồi báo lại: "bản mới nhanh hơn 15%, triển khai thôi."
+Hệ quả là phần lớn khác biệt quan sát được giữa hai phiên bản mã nằm trong khoảng nhiễu của phép đo, chứ không phản ánh khác biệt thật.
 
-Ta chạy lại và nhận kết quả ngược. Không ai nói dối cả. Chỉ là cái máy lúc ấy đang ở một tâm trạng khác.
+Thử nghiệm trên một laptop thông thường: lấy một câu lệnh, so nó với bản sao y hệt của chính nó, dùng cách đo phổ biến (chạy hết A rồi chạy hết B, so trung bình bằng công thức sai số chuẩn chia căn N). Kết quả báo hai bên khác nhau trong **62% số lần thử**, dù chúng là một.
 
-Tôi đã nghe câu chuyện đó quá nhiều lần, nên quyết định đo xem nó xảy ra thường xuyên đến đâu. Trên một chiếc laptop bình thường, đem một câu lệnh so với **bản sao y hệt của chính nó**, cách đo thông thường kết luận rằng chúng khác nhau trong **62% số lần thử**. Cùng một câu lệnh. Cùng một cái máy. Hai phần ba câu trả lời là sai.
+Cách đo mà công cụ này dùng hạ tỉ lệ đó xuống khoảng **4%**, và không kết luận khi dữ liệu chưa đủ.
 
-Công cụ này kéo con số đó xuống còn khoảng 4%. Và khi vẫn chưa đủ cơ sở để kết luận, nó nói thẳng ra điều đó thay vì bốc một con số cho có.
+## Cài đặt và chạy
 
-## Mở bằng trình duyệt
+Yêu cầu Python 3.9 trở lên, không cần thư viện ngoài.
 
-Nhấn đúp vào `launchers/benchmeter.cmd` nếu dùng Windows, hoặc `launchers/benchmeter.sh` nếu dùng macOS và Linux. Một trang web mở ra ngay trên máy.
-
-Gõ hai câu lệnh, bấm nút, đọc kết quả. Không cần tài khoản, không có gì rời khỏi máy. Nếu chưa có Python, nó chỉ luôn chỗ tải về.
-
-Ai quen dòng lệnh hơn:
+Giao diện web, chạy hoàn toàn trên máy cục bộ:
 
 ```
 python -m benchmeter.cli --web
 ```
 
-Trang sẽ đo máy, chạy lệnh của ta, rồi đưa ra một con số hoặc nói rõ là không thể. Kết quả sao chép được thành văn bản thuần, in ra giấy cũng được.
+Trên Windows có thể nhấn đúp `launchers/benchmeter.cmd`; trên macOS và Linux là `launchers/benchmeter.sh`. Hai tệp này tự tìm trình thông dịch phù hợp và chỉ dẫn nếu chưa có Python.
 
-## Hoặc dùng thẳng dòng lệnh
+Dòng lệnh:
 
 ```bash
 python -m benchmeter.cli "python cu.py" "python moi.py"
 ```
 
-Chỉ có hai loại câu trả lời.
+## Kết quả
 
-Khi khác biệt là thật:
+Có hai dạng đầu ra.
+
+Khi khoảng tin cậy nằm hẳn một phía của mốc không:
 
 ```
   variant is 12.4% faster than baseline
@@ -44,7 +42,7 @@ Khi khác biệt là thật:
   confidence: high
 ```
 
-Khi không phải:
+Khi chưa loại trừ được khả năng hai bên bằng nhau:
 
 ```
   NO CONCLUSION
@@ -57,9 +55,9 @@ Khi không phải:
     - About 180 more rounds would likely settle it.
 ```
 
-Câu trả lời thứ hai mới là câu đáng giá. Những công cụ khác sẽ thả cho ta con số "nhanh hơn 3,1%" rồi để ta tự tin hành động theo nó.
+Trường hợp thứ hai là phần khác biệt chính so với các công cụ tương tự: thay vì trả về con số 3,1% để người dùng tự diễn giải, nó nêu rõ dữ liệu chưa đủ và cần làm gì tiếp.
 
-## Biết giới hạn của cái thước
+## Đo đặc tính máy
 
 ```
 python -m benchmeter.cli --check-machine
@@ -71,93 +69,89 @@ python -m benchmeter.cli --check-machine
   resolves from   : 2.6%
 ```
 
-Dòng cuối là giới hạn của dụng cụ đo. Trên chiếc máy này, mọi khác biệt nhỏ hơn 2,6% đều nằm dưới sàn nhiễu, và đo bao nhiêu lần cũng không tìm ra được. Biết điều đó trước sẽ đỡ mất một buổi chiều đi truy một con số 1%.
+Công cụ chạy một tác vụ có khối lượng cố định nhiều lần. Vì tác vụ không đổi, mọi biến động quan sát được đều đến từ máy.
 
-## Đừng tin lời tôi
+Dòng cuối là sàn phân giải: trên máy này, khác biệt nhỏ hơn 2,6% nằm dưới mức nhiễu và không xác định được, bất kể số lần đo.
+
+## Kiểm chứng độc lập
 
 ```
 python -m benchmeter.cli --self-proof
 ```
 
-Lệnh này đo **đúng một tác vụ duy nhất**, chia đôi số mẫu thu được, rồi đem hai nửa so với nhau. Chúng vốn là một, nên mọi kết luận "khác biệt có ý nghĩa" đều là lời nói dối, theo định nghĩa. Nó đếm số lời nói dối đó.
+Lệnh này đo một tác vụ duy nhất, chia số mẫu thành hai nửa theo thứ tự thu được, rồi so hai nửa với nhau bằng cả hai phương pháp. Vì hai nửa cùng một tác vụ, mọi kết luận "khác biệt có ý nghĩa" đều là dương tính giả và đếm được.
 
-Kết quả trên chiếc laptop tôi viết công cụ này:
+Số liệu trên máy tham chiếu (Intel i7-1185G7, Windows, không GPU rời):
 
 ```
                         Python       C
-máy trôi                 29.8%   106.8%
-đo tuần tự → báo sai     62.2%    40.7%
-đo xen kẽ  → báo sai      4.1%     0.0%
+biến động của máy        29.8%   106.8%
+đo tuần tự → sai         62.2%    40.7%
+đo xen kẽ  → sai          4.1%     0.0%
 ```
 
-Cột C có mặt ở đây vì ai cũng sẽ nghĩ ngay: "chắc do bộ dọn rác của Python thôi." Không phải. Trong C câu chuyện y hệt.
+Cột C nhằm loại trừ giả thuyết nhiễu đến từ bộ dọn rác và lớp thông dịch của Python. Mã nguồn ở `native/verify.c`.
 
-## Vì sao nó hoạt động
+## Phương pháp
 
-Không nhờ thống kê tinh vi nào. Chỉ là đổi thứ tự làm việc.
+**Đo xen kẽ.** Mỗi vòng chạy cả hai câu lệnh một lần, thứ tự xáo ngẫu nhiên. Cách đo tuần tự đặt toàn bộ số mẫu của B vào một khoảng thời gian khác với A, nên mọi biến động của máy trong khoảng giữa được quy hết cho B. Đo xen kẽ phân bố biến động đều cho cả hai.
 
-Người ta thường đo A một trăm lần, rồi đo B một trăm lần. Trong khoảng giữa đó, máy nóng lên, Windows quyết định lập chỉ mục thứ gì đó, CPU hạ tần vì laptop đang chạy pin. Toàn bộ chênh lệch ấy đổ lên đầu B, và B bị quy tội.
+**Trung vị thay trung bình.** Giá trị lạc do hệ điều hành chen ngang không kéo lệch kết quả.
 
-Công cụ này chạy **xen kẽ** — A, B, A, B — và xáo thứ tự mỗi vòng. Máy đang làm gì ở thời điểm nào thì cả hai câu lệnh cùng ngồi trong đó.
+**Bootstrap theo cặp.** Lần chạy thứ *i* của A và thứ *i* của B diễn ra cách nhau vài giây dưới cùng điều kiện. Lấy mẫu lại theo cặp giữ nguyên quan hệ đó thay vì trộn lẫn hai chuỗi.
 
-Ba điều nhỏ hơn xây thêm trên nền ấy:
+**Chặn dưới theo sàn phân giải.** Khoảng tin cậy chỉ mô tả tập mẫu đã thu, không biết máy đang biến động. Công cụ yêu cầu khác biệt vượt sàn phân giải của máy mới kết luận.
 
-- Dùng trung vị, nên một lần chạy bất hạnh đúng lúc phần mềm diệt virus thức giấc sẽ không kéo lệch mọi thứ.
-- Giữ nguyên từng cặp A/B khi tính khoảng tin cậy, bởi chúng chạy cách nhau vài giây dưới cùng một điều kiện.
-- Từ chối báo một khác biệt nhỏ hơn mức máy thật sự phân biệt được, kể cả khi phép thống kê nghe rất thuyết phục.
+Cách đo xen kẽ nhiều tầng có tên trong tài liệu nghiên cứu là *randomised multiple interleaved trials* (RMIT).
 
-## Những gì nó còn làm
+## Tuỳ chọn
 
 ```bash
-# đặt tên cho dễ đọc kết quả
+# đặt tên hiển thị
 python -m benchmeter.cli "python a.py" "python b.py" --label cu --label moi
 
-# so nhiều hơn hai
+# so nhiều hơn hai câu lệnh
 python -m benchmeter.cli "a.py" "b.py" "c.py"
 
-# cho thêm thời gian, dành cho khác biệt nhỏ mà thật
+# giới hạn thời gian đo, tính bằng giây
 python -m benchmeter.cli "a" "b" -t 60
 
-# dùng trong kịch bản và CI
+# đầu ra JSON
 python -m benchmeter.cli "a" "b" --json
 
-# cùng hạt giống, cùng kết quả, hữu ích khi ai đó không tin số của ta
+# cố định hạt giống để lặp lại đúng phép đo
 python -m benchmeter.cli "a" "b" --seed 42
 
-# ghi lại và so với lần trước
+# lưu và so với lần đo trước
 python -m benchmeter.cli "a" "b" --save --note "truoc khi them cache"
 ```
 
-Mã thoát: `0` có khác biệt, `1` có lỗi, `2` không kết luận được. Cái cuối quan trọng nếu ta dựng cổng chặn cho bản build — một lần thất bại phải nghĩa là "cái này chậm đi", không phải "máy chạy CI lúc đó đang bận".
+Mã thoát: `0` có khác biệt, `1` lỗi, `2` không kết luận được. Phân biệt `0` và `2` cần thiết khi dùng trong CI, để một lần thất bại nghĩa là hiệu năng giảm chứ không phải máy chạy CI đang tải cao.
 
-Bản ghi lưu kèm cả tình trạng máy. Đem so với tuần trước mà máy đang ở trạng thái khác, nó sẽ nói ra, thay vì quy tội cho đoạn mã.
+Bản ghi lưu kèm đặc tính máy tại thời điểm đo. Khi so với lần trước mà máy ở trạng thái khác, công cụ nêu rõ điều này.
 
-## Những gì nó không làm
+## Giới hạn
 
-**Nó không làm máy ta yên tĩnh lại.** Tôi đã thử. Ghim tiến trình vào một nhân, nâng độ ưu tiên, tắt bộ dọn rác — cả ba đều hoặc thất bại thẳng vì không có quyền quản trị, hoặc chẳng thay đổi gì đo được. Nên nó chọn phát hiện và báo, thay vì hứa hẹn.
+**Không giảm biến động của máy.** Đã thử ghim tiến trình vào một nhân CPU, nâng độ ưu tiên và tắt bộ dọn rác. Trên máy không có quyền quản trị, hai biện pháp đầu bị hệ điều hành từ chối, biện pháp thứ ba không làm biến động giảm. Công cụ chuyển sang phát hiện và báo.
 
-**Nó chậm hơn cách đếm lệnh.** Muốn một con số y hệt nhau mọi lần thì `cachegrind` đếm số lệnh CPU với phương sai gần như bằng không. Nhưng nó chậm, và nó bỏ qua những gì phần cứng thật sự làm, như dự đoán nhánh. Câu hỏi khác thì dùng dụng cụ khác.
+**Chậm hơn đếm lệnh CPU.** `cachegrind` đếm số lệnh với phương sai gần bằng không, nhưng chạy chậm và không phản ánh các đặc tính phần cứng như dự đoán nhánh hay thực thi song song. Hai công cụ trả lời hai câu hỏi khác nhau.
 
-**Cái mẹo xen kẽ không phải của tôi.** Trong tài liệu nghiên cứu nó có tên là RMIT. Việc tôi làm là đóng gói để dùng được, và dạy nó im lặng khi không biết.
+**Thực thi câu lệnh người dùng nhập.** Máy chủ chỉ lắng nghe trên loopback và từ chối yêu cầu không phát sinh từ trang của chính nó, nhưng vẫn chạy câu lệnh nhận được.
 
-**Nó chạy bất cứ thứ gì ta gõ vào.** Máy chủ chỉ lắng nghe trên loopback và từ chối những yêu cầu không đến từ trang của chính nó, nhưng nó vẫn thực thi câu lệnh ta đưa. Đừng dán vào đó thứ mà ta không dám tự chạy.
+**Số liệu từ một máy.** Mọi con số trong tài liệu này đo trên một laptop Windows. Kết quả trên máy khác sẽ khác; `--self-proof` cho phép tự đo lại.
 
-**Một cái máy, một hệ điều hành.** Mọi con số phía trên đo trên duy nhất một chiếc laptop Windows. Số của ta sẽ khác. Chạy `--self-proof` rồi biết.
+**Chưa hỗ trợ đo phân tán trên nhiều máy.**
 
-## Chạy kiểm thử
+## Kiểm thử
 
 ```
 python -m unittest discover tests
 ```
 
-31 bài. Đáng chú ý nhất nằm trong `test_false_positives.py` — nó nạp vào những trường hợp đã biết trước đáp án: các mẫu sinh từ cùng một nguồn thì tuyệt đối không được gọi là khác nhau, và một khác biệt gấp đôi thì tuyệt đối không được bỏ sót. Rồi đếm số lần trả lời sai.
+31 bài kiểm thử. Phần chính nằm trong `test_false_positives.py`: nạp các trường hợp đã biết trước đáp án — mẫu sinh từ cùng một phân bố không được báo là khác nhau, khác biệt gấp đôi không được bỏ sót — rồi đếm tỉ lệ trả lời sai.
 
-Một công cụ tự chấm bài mình thì không phải bằng chứng.
+## Nguồn gốc
 
-## Nó đến từ đâu
+Xuất phát từ nguyên tắc trong môn thí nghiệm vật lý đại cương: mọi kết quả đo phải kèm sai số, và phải biết giới hạn phân giải của dụng cụ trước khi tin vào số đo.
 
-Từ môn thí nghiệm vật lý đại cương. Mọi phép đo đều phải kèm sai số; một con số trần trụi thì bị trừ điểm.
-
-Rồi bước vào ngành phần mềm và thấy người ta công bố kết quả đo hiệu năng không kèm thanh sai số nào, mà chẳng ai thấy có vấn đề.
-
-Hóa ra chuyện này đã được biết. Mytkowicz và cộng sự rà 133 bài báo từ bốn hội nghị hệ thống lớn và không tìm được bài nào xử lý độ chệch phép đo cho đúng. Sinh viên năm nhất ngành vật lý đang làm việc này chặt chẽ hơn các nhà khoa học máy tính.
+Nguyên tắc này ít được áp dụng khi đo hiệu năng phần mềm. Mytkowicz và cộng sự khảo sát 133 bài báo từ ASPLOS, PACT, PLDI và CGO, không tìm thấy bài nào xử lý độ chệch phép đo một cách đầy đủ.
