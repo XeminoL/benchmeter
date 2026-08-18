@@ -370,13 +370,6 @@ caption {
   margin: 0 0 4px;
 }
 
-.scatter-block__caption {
-  font-size: 14px;
-  color: var(--text-faint);
-  margin: 12px 0 0;
-  max-width: 66ch;
-}
-
 .scatter {
   display: block;
   width: 100%;
@@ -596,18 +589,6 @@ caption {
 
 .status--error {
   color: var(--warn);
-}
-
-.footnote {
-  border-top: 1px solid var(--line);
-  padding-top: 20px;
-  font-size: 14px;
-  color: var(--text-faint);
-}
-
-.footnote p {
-  max-width: 66ch;
-  margin: 0;
 }
 
 .noscript {

@@ -178,13 +178,18 @@ function intervalBar(comparison) {
 
   const caption = document.createElement("figcaption");
   caption.className = "interval__caption";
+  const spansZero =
+    comparison.lowerPercent <= 0 && comparison.upperPercent >= 0;
+  let tail = ".";
+  if (!comparison.conclusive) {
+    tail = spansZero
+      ? ", which crosses zero, so it might be nothing at all."
+      : ", but that is smaller than this machine can reliably detect.";
+  }
   caption.textContent =
     `Best guess ${percent(comparison.percent)}. The real answer is ` +
     `somewhere between ${percent(comparison.lowerPercent)} and ` +
-    `${percent(comparison.upperPercent)}` +
-    (comparison.conclusive
-      ? ", all on one side of zero, so you can rely on it."
-      : ", which crosses zero, so it might be nothing at all.");
+    `${percent(comparison.upperPercent)}` + tail;
 
   figure.append(chart, caption);
   return figure;
@@ -239,8 +244,8 @@ function renderVerdict(comparison, machine) {
   } else {
     detail.textContent =
       `${comparison.variant} and ${comparison.baseline} came out ` +
-      `${plain(Math.abs(comparison.percent))} apart. That is inside the ` +
-      `margin of error on this machine, so no difference is established.`;
+      `${plain(Math.abs(comparison.percent))} apart, which is not enough ` +
+      `to call on this machine.`;
   }
   box.appendChild(detail);
   box.appendChild(intervalBar(comparison));
@@ -357,13 +362,6 @@ function renderScatter(series) {
   legend.appendChild(dashed);
   host.appendChild(legend);
 
-  const clippedNote = clipped
-    ? ` ${clipped} run${clipped > 1 ? "s" : ""} went off the top of the ` +
-      `chart and sit against the edge.`
-    : "";
-  el("scatter-caption").textContent =
-    "A tilt or a sudden jump means your machine changed speed while " +
-    "measuring." + clippedNote;
 }
 
 function renderResults(data) {
@@ -371,9 +369,6 @@ function renderResults(data) {
   renderRows(data.series);
   el("run-caption").textContent =
     "Run one after the other, in random order";
-  el("results-state").textContent =
-    `${data.rounds} rounds` +
-    (data.stoppedEarly ? ", stopped once clear" : "");
   renderScatter(data.series);
 
   const verdicts = el("verdicts");
