@@ -4,7 +4,11 @@ Measured the conventional way, all repetitions of A then all of B with means com
 
 Interleaving the variants within each round removes the attribution. Where the evidence is insufficient, no conclusion is reported.
 
+**[Run it in the browser](https://xeminol.github.io/benchmeter/)**, which compares two JavaScript snippets on the local machine with nothing to install.
+
 ![The interface after a run](docs/screenshot-light.png)
+
+For measuring commands rather than snippets, run it locally:
 
 - `launchers/benchmeter.cmd` on Windows
 - `launchers/benchmeter.sh` on Mac, Linux
