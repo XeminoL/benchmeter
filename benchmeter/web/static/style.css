@@ -133,6 +133,10 @@ p {
   color: var(--text-soft);
 }
 
+.margin-note--dropped {
+  margin-top: 28px;
+}
+
 .margin-note__label {
   font-size: 13px;
   font-weight: 600;
@@ -641,6 +645,10 @@ caption {
   .column-pair {
     grid-template-columns: 1fr;
     gap: 24px;
+  }
+
+  .margin-note--dropped {
+    margin-top: 0;
   }
 
   .field__row {
