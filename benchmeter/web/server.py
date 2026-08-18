@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import threading
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -13,6 +14,7 @@ from ..experiment import measure
 from .. import statistics_ as stats
 
 STATIC_DIR = Path(__file__).parent / "static"
+ASSET_VERSION = str(int(time.time()))
 DEFAULT_PORT = 7801
 MAX_COMMANDS = 4
 MAX_BUDGET_SECONDS = 120
@@ -137,13 +139,28 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type",
                          CONTENT_TYPES.get(path.suffix, "text/plain"))
         self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store, must-revalidate")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def send_index(self) -> None:
+        html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+        html = html.replace('href="style.css"',
+                            f'href="style.css?v={ASSET_VERSION}"')
+        html = html.replace('src="app.js"',
+                            f'src="app.js?v={ASSET_VERSION}"')
+        body = html.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", CONTENT_TYPES[".html"])
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store, must-revalidate")
         self.end_headers()
         self.wfile.write(body)
 
     def do_GET(self):
         route = urlparse(self.path).path
         if route == "/":
-            self.send_static("index.html")
+            self.send_index()
         elif route == "/api/machine":
             self.send_json(probe_machine())
         else:
