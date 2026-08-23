@@ -1,8 +1,8 @@
 Determines whether one command is faster than another, or whether the difference is indistinguishable from measurement noise.
 
-Measured the conventional way, all repetitions of A then all of B with means compared using the standard error, a command and an exact copy of itself are declared different most of the time. Host throughput drifts during the measurement, and a sequential design attributes that drift to whichever variant ran second.
+Measured the conventional way, all repetitions of A then all of B with means compared using the standard error, a command and an exact copy of itself are declared different most of the time. 
 
-Interleaving the variants within each round removes the attribution. Where the evidence is insufficient, no conclusion is reported.
+Interleaving the variants within each round removes the attribution. 
 
 ![The interface after a run](docs/screenshot-light.png)
 
@@ -30,7 +30,7 @@ Python 3.9+
 python -m benchmeter.cli --self-proof
 ```
 
-Times one task, partitions the samples, and compares partitions drawn from it. Both procedures are scored on the same samples.
+Times one task, partitions the samples, and compares partitions drawn from it.
 
 Replicated in C to rule out the garbage collector and the interpreter loop as causes, with the same outcome. Source in `native/verify.c`.
 
@@ -53,10 +53,6 @@ Exit codes:
 - `0` difference established
 - `1` error
 - `2` no conclusion
-
-The `0`/`2` distinction separates a regression from a busy runner in CI.
-
-Saved runs record the host state, so a comparison spanning two host states is reported as such.
 
 ![Dark theme](docs/screenshot-dark.png)
 
