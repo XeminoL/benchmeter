@@ -47,8 +47,6 @@ Exit codes:
 - `1` error
 - `2` no conclusion
 
-![Dark theme](docs/screenshot-dark.png)
-
 ## Experiments
 
 ```
