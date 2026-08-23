@@ -1,9 +1,5 @@
 Determines whether one command is faster than another, or whether the difference is indistinguishable from measurement noise.
 
-Measured the conventional way, all repetitions of A then all of B with means compared using the standard error, a command and an exact copy of itself are declared different most of the time. 
-
-Interleaving the variants within each round removes the attribution. 
-
 ![The interface after a run](docs/screenshot-light.png)
 
 - `launchers/benchmeter.cmd` on Windows
@@ -19,10 +15,10 @@ Python 3.9+
 
 ## Method
 
-- **Interleaved rounds.** Every variant runs once per round, in shuffled order. Drift that a sequential design records as a difference between variants becomes variance shared by both.
-- **Median and MAD.** Timing distributions are right-skewed; the mean follows the tail.
-- **Paired bootstrap.** Round *i* of A and round *i* of B execute seconds apart. Resampling whole rounds preserves the pairing.
-- **Resolution floor.** An interval characterises the samples, not the stability of the host. The host is profiled separately, and a difference must clear its measured resolution before it is reported.
+- **Interleaved rounds.** Every variant runs once per round, in shuffled order.
+- **Median and MAD.** Timing distributions are right-skewed.
+- **Paired bootstrap.** Round *i* of A and round *i* of B execute seconds apart. 
+- **Resolution floor.** An interval characterises the samples.
 
 ## Validation
 
