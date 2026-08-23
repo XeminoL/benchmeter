@@ -1,3 +1,6 @@
+> [!NOTE]
+> **Status:** This project is inactive and no longer updated.
+
 Determines whether one command is faster than another, or whether the difference is indistinguishable from measurement noise.
 
 ![The interface after a run](docs/screenshot-light.png)
