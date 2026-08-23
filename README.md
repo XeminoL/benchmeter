@@ -41,9 +41,6 @@ python -m benchmeter.cli "a" "b" --seed 42
 python -m benchmeter.cli "a" "b" --save --note "before caching"
 python -m benchmeter.cli --check-machine
 ```
-
-`--check-machine` repeats a fixed workload and reports drift, spread, and the floor below which no difference is resolvable on that host.
-
 Exit codes:
 
 - `0` difference established
