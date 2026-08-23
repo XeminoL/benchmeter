@@ -9,7 +9,7 @@ Interleaving the variants within each round removes the attribution. Where the e
 - `launchers/benchmeter.cmd` on Windows
 - `launchers/benchmeter.sh` on Mac, Linux
 
-Update to Python 3.9+
+Python 3.9+
 
 ![A command against an exact copy of itself: the interval crosses zero and the difference sits under the resolution floor, so no verdict is issued](docs/screenshot-inconclusive.png)
 
