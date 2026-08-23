@@ -55,8 +55,7 @@ python experiments/against_hyperfine.py <path-to-hyperfine>
 
 Three measurements behind the design: how much of a timed run is interpreter
 start-up, how the resolution floor behaves as its threshold is moved, and how
-the tool compares against hyperfine on the same host. Details in
-`experiments/README.md`.
+the tool compares against hyperfine on the same host. 
 
 ## Tests
 
