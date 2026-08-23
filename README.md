@@ -74,5 +74,3 @@ the tool compares against hyperfine on the same host. Details in
 ```
 python -m unittest discover tests
 ```
-
-`test_false_positives.py` fixes the correct answer in advance: samples from one distribution must never be declared different, a twofold difference must never be missed.
