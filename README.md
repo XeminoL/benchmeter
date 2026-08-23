@@ -7,8 +7,6 @@ Determines whether one command is faster than another, or whether the difference
 
 Python 3.9+
 
-![A command against an exact copy of itself: the interval crosses zero and the difference sits under the resolution floor, so no verdict is issued](docs/screenshot-inconclusive.png)
-
 ## Architecture
 
 ![](docs/architecture.svg)
